@@ -26,6 +26,10 @@ const uint32_t FLOAT_MANTISSA_MSB = (1u<<22);
 const uint32_t FLOAT_MANTISSA_MAX = (FLOAT_MANTISSA_MSB<<1)-1;
 
 
+/**
+ * @param f float value
+ * @return exponent e according to <pre>f = <mantissa>*2^e</pre>
+ */
 static inline int float_exponent_biased(float f) {
 	ieee754_float result = {.f = f};
 	return result.ieee.exponent - IEEE754_FLOAT_BIAS;
@@ -55,6 +59,10 @@ const int32_t DOUBLE_MANTISSA_FULL_SIZE = DOUBLE_MANTISSA0_SIZE + DOUBLE_MANTISS
 
 
 
+/**
+ * @param d double float value
+ * @return exponent e according to <pre>d = <mantissa>*2^e</pre>
+ */
 static inline int double_exponent_biased(double d) {
 	ieee754_double result = {.d = d};
 	return result.ieee.exponent - IEEE754_DOUBLE_BIAS;

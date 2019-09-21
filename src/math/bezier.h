@@ -255,6 +255,7 @@ int bezier_line_segment_intersections(const vec2& p0, const vec2& p1, const vec2
 
 bool bezier_inflection_point(const vec2 p0, const vec2 p1, const vec2 p2, const vec2 p3, float& t);
 bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& p3, dvec2& t_min, dvec2& t_max);
+int bezier_bezier_intersections(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, float tolerance, vec2 p[9]);
 
 }
 

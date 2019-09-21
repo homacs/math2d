@@ -194,6 +194,52 @@ static inline void test_bezier_line_intersections_iterative() {
 	assert(about_equal(p[2].y, 1, tolerance));
 }
 
+
+
+static inline void test_bezier_extrema() {
+	dvec2 t_min, t_max;
+	bool found;
+	// no turning point
+	found = bezier_extrema(vec2(1,0), vec2(1,3), vec2(3,3), vec2(3,0),	t_min, t_max);
+	assert(found == true);
+	assert(t_min.x == INFINITY);
+	assert(t_max.x == INFINITY);
+	assert(t_min.y == INFINITY);
+	assert(t_max.y == 0.5);
+
+	// with turning point
+	found = bezier_extrema(vec2(1,0), vec2(1,7), vec2(3,-4), vec2(3,3), t_min, t_max);
+	assert(found == true);
+	assert(t_min.x == INFINITY);
+	assert(t_max.x == INFINITY);
+	assert(t_min.y != INFINITY);
+	assert(t_max.y != INFINITY);
+
+	// loop
+	found = bezier_extrema(vec2(0,0), vec2(-3,1), vec2(3,1), vec2(0,0), t_min, t_max);
+	assert(found == true);
+	assert(t_min.x != INFINITY);
+	assert(t_max.x != INFINITY);
+	assert(t_min.y == INFINITY);
+	assert(t_max.y != INFINITY);
+
+	// diagonal loop
+	found = bezier_extrema(vec2(0,0), vec2(-2,-1), vec2(2,1), vec2(0,0), t_min, t_max);
+	assert(found == true);
+	assert(t_min.x != INFINITY);
+	assert(t_max.x != INFINITY);
+	assert(t_min.y != INFINITY);
+	assert(t_max.y != INFINITY);
+
+	// saddle point
+	found = bezier_extrema(vec2(0,0), vec2(2,0), vec2(0,2), vec2(2,2), t_min, t_max);
+	assert(found == false);
+	assert(t_min.x == INFINITY);
+	assert(t_max.x == INFINITY);
+	assert(t_min.y == INFINITY);
+	assert(t_max.y == INFINITY);
+}
+
 static inline void test_bezier_line_intersections() {
 
 	float tolerance = 0.000001f;
@@ -248,59 +294,32 @@ static inline void test_bezier_line_intersections() {
 
 
 
-static inline void test_bezier_extrema() {
-	dvec2 t_min, t_max;
-	bool found;
-	// no turning point, two intersections
-	found = bezier_extrema(vec2(1,0), vec2(1,3), vec2(3,3), vec2(3,0),	t_min, t_max);
-	assert(found == true);
-	assert(t_min.x == INFINITY);
-	assert(t_max.x == INFINITY);
-	assert(t_min.y == INFINITY);
-	assert(t_max.y == 0.5);
+static inline void test_bezier_bezier_intersections() {
 
-	// with turning point, three intersections
-	found = bezier_extrema(vec2(1,0), vec2(1,7), vec2(3,-4), vec2(3,3), t_min, t_max);
-	assert(found == true);
-	assert(t_min.x == INFINITY);
-	assert(t_max.x == INFINITY);
-	assert(t_min.y != INFINITY);
-	assert(t_max.y != INFINITY);
+	float tolerance = 0.000001f;
+	vec2 p[9];
+	int count;
 
-	// loop
-	found = bezier_extrema(vec2(0,0), vec2(-3,1), vec2(3,1), vec2(0,0), t_min, t_max);
-	assert(found == true);
-	assert(t_min.x != INFINITY);
-	assert(t_max.x != INFINITY);
-	assert(t_min.y == INFINITY);
-	assert(t_max.y != INFINITY);
-
-	// diagonal loop
-	found = bezier_extrema(vec2(0,0), vec2(-2,-1), vec2(2,1), vec2(0,0), t_min, t_max);
-	assert(found == true);
-	assert(t_min.x != INFINITY);
-	assert(t_max.x != INFINITY);
-	assert(t_min.y != INFINITY);
-	assert(t_max.y != INFINITY);
-
-	// saddle point
-	found = bezier_extrema(vec2(0,0), vec2(2,0), vec2(0,2), vec2(2,2), t_min, t_max);
-	assert(found == false);
-	assert(t_min.x == INFINITY);
-	assert(t_max.x == INFINITY);
-	assert(t_min.y == INFINITY);
-	assert(t_max.y == INFINITY);
-
+	// no turning point, same bezier mirrored
+	// two intersections
+	count = bezier_bezier_intersections(
+			vec2(1,0), vec2(1,3), vec2(3,3), vec2(3,0),
+			vec2(1,3), vec2(1,0), vec2(3,0), vec2(3,3),
+			tolerance, p);
+//	assert(count == 2);
+//	assert(about_equal(p[0].y, 1, tolerance));
+//	assert(about_equal(p[1].y, 1, tolerance));
 
 }
 
 
-
 void test_bezier_all() {
+	test_bezier_extrema();
+	test_bezier_inflection_point();
 	test_bezier_split_merge();
 	test_bezier_line_intersections_iterative();
 	test_bezier_line_intersections();
-	test_bezier_extrema();
+	test_bezier_bezier_intersections();
 }
 
 

@@ -43,10 +43,8 @@ void run_all_tests() {
 
 
 int main(int argc, char** argv) {
+	test_bezier_bezier_intersections();
 
-
-	// test_bezier_inflection_point();
-	// test_bezier_line_intersections();
 	run_all_tests();
 	return 0;
 }
