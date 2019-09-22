@@ -82,6 +82,11 @@ const struct CO_DOMAIN_COMPLEX_NUMBERS_T {
 	}
 } CO_DOMAIN_COMPLEX;
 
+const struct CO_DOMAIN_REAL_IN_NEG_1_POS_1_T {
+	bool operator() (double value, double im = 0.0) const {
+		return -1 <= value && value <= 1 && (im == 0.0);
+	}
+} CO_DOMAIN_REAL_IN_NEG_1_POS_1; /**< All real numbers in range [-1:1] */
 
 const struct CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T {
 	bool operator() (double value, double im = 0.0) const {

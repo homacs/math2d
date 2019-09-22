@@ -38,6 +38,7 @@ static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2 
 	p = mix(P0, P1, f);
 }
 
+
 static inline void bezier_point_highp(double f, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2 const & p3, vec2& p) {
 	assert(0 <= f && f <= 1.0);
 
@@ -69,6 +70,25 @@ static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2 
 
 	p = mix(P4, P5, f);
 }
+
+
+
+/**
+ * Determines the parameters of a line L(s)=m*s + p, which is a tangent of the bezier curve P(f) at P(f_t).
+ *
+ * p = P(f_t)
+ * m = P'(f_t)
+ */
+static inline void bezier_tangent(float f_t, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2 const & p3, vec2& p, vec2& m) {
+	// p = P(f_t)
+	bezier_point(f_t, p0, p1, p2, p3, p);
+
+	// m = P'(f_t)
+	bezier_point(f_t, p1-p0, p2-p1, p3-p2, m);
+	// m *= 3.f; <-- doesn't change anything
+}
+
+
 
 static inline void bezier_split_highp(double f, vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2& q0, vec2& q1, vec2& q2, vec2& q3) {
 	// using q3 as temporary variable
@@ -115,6 +135,9 @@ static inline void bezier_split_highp(double f, vec2& p0, vec2& p1, vec2& p2, ve
 	// p0 unchanged
 
 }
+
+
+
 
 
 static inline void bezier_split(float f, vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2& q0, vec2& q1, vec2& q2, vec2& q3) {
@@ -250,12 +273,29 @@ static inline bool bezier_merge(vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2 q0,
 
 
 
-int bezier_line_segment_intersections_iterative(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 p[3]);
-int bezier_line_segment_intersections(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 p[3]);
+/**
+ * Intersections between bezier curve and a line segment from m to n.
+ * L(s) = m + (n-m)* s
+ */
+int bezier_line_segment_intersections_iterative(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 results[3]);
+/**
+ * Intersections between bezier curve and a line segment from m to n.
+ * L(s) = m + (n-m)* s
+ */
+int bezier_line_segment_intersections(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 results[3]);
 
 bool bezier_inflection_point(const vec2 p0, const vec2 p1, const vec2 p2, const vec2 p3, float& t);
 bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& p3, dvec2& t_min, dvec2& t_max);
-int bezier_bezier_intersections(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, float tolerance, vec2 p[9]);
+
+/**
+ * Computes all intersections of two bezier curves using
+ * the recursive subdivision method.
+ * Parameter 'tolerance' controls the maximum deviation of accepted
+ * results (intersection points) of the true intersection
+ * point. Thus, lower tolerance effectively means higher
+ * processing effort.
+ */
+int bezier_bezier_intersections_t(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, float tolerance, double t_p[9], double t_q[9]);
 
 }
 

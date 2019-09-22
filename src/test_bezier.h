@@ -298,15 +298,17 @@ static inline void test_bezier_bezier_intersections() {
 
 	float tolerance = 0.000001f;
 	vec2 p[9];
+	double t_p[9];
+	double t_q[9];
 	int count;
 
 	// no turning point, same bezier mirrored
 	// two intersections
-	count = bezier_bezier_intersections(
+	count = bezier_bezier_intersections_t(
 			vec2(1,0), vec2(1,3), vec2(3,3), vec2(3,0),
 			vec2(1,3), vec2(1,0), vec2(3,0), vec2(3,3),
-			tolerance, p);
-//	assert(count == 2);
+			tolerance, t_p, t_q);
+	assert(count == 2);
 //	assert(about_equal(p[0].y, 1, tolerance));
 //	assert(about_equal(p[1].y, 1, tolerance));
 
