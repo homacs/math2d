@@ -10,12 +10,12 @@
 #define TEST_MATH_LINE_H_
 
 #include <float-utils.h>
-#include <math/line.h>
+#include <math2d/line.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 using namespace glm;
-using namespace math;
+using namespace math2d;
 #include "perf_clock.h"
 
 

@@ -5,8 +5,8 @@
  *      Author: homac
  */
 
-#ifndef MATH_GRAPH2DPLANAR_H_
-#define MATH_GRAPH2DPLANAR_H_
+#ifndef MATH2D_GRAPH2DPLANAR_H_
+#define MATH2D_GRAPH2DPLANAR_H_
 
 
 #include <iostream>
@@ -30,12 +30,12 @@ using namespace glm;
 using namespace std;
 
 
-#include "math/line.h"
-#include "config.h"
+#include <math2d/line.h>
+#include <math2d_config.h>
 
 
 
-namespace math {
+namespace math2d {
 
 
 
@@ -859,4 +859,4 @@ protected:
 
 } /* namespace math */
 
-#endif /* MATH_GRAPH2DPLANAR_H_ */
+#endif /* MATH2D_GRAPH2DPLANAR_H_ */

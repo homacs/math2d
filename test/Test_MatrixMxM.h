@@ -9,11 +9,11 @@
 #define MATH_TEST_MATRIXMXM_H_
 
 
-#include "math/MatrixMxM.h"
+#include <math2d/MatrixMxM.h>
 
 
 
-namespace math {
+namespace math2d {
 
 struct Test_MatrixMxM {
 

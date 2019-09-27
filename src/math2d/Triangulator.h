@@ -5,8 +5,8 @@
  *      Author: homac
  */
 
-#ifndef MATH_TRIANGULATOR_H_
-#define MATH_TRIANGULATOR_H_
+#ifndef MATH2D_TRIANGULATOR_H_
+#define MATH2D_TRIANGULATOR_H_
 
 
 #include <iostream>
@@ -21,7 +21,7 @@
 using namespace glm;
 
 
-#include "MatrixMxM.h"
+#include <math2d/MatrixMxM.h>
 
 #include <limits>
 #include <vector>
@@ -33,14 +33,14 @@ using namespace glm;
 using namespace std;
 
 
-#include "math/line.h"
-#include "config.h"
+#include <math2d/line.h>
+#include <math2d_config.h>
 
-#include "math/Graph2DPlanar.h"
+#include <math2d/Graph2DPlanar.h>
 
 struct Test_Triangulator;
 
-namespace math {
+namespace math2d {
 
 // TODO: Triangulator consider using integer only
 // TODO: performance: floating point causes to many inaccuracies,
@@ -1957,4 +1957,4 @@ public:
 
 } /* namespace math */
 
-#endif /* MATH_TRIANGULATOR_H_ */
+#endif /* MATH2D_TRIANGULATOR_H_ */

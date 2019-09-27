@@ -6,11 +6,10 @@
 
 
 #include <assert.h>
-#include "math/line.h"
-
 #include <stdlib.h>
 
 #include <glm/gtc/constants.hpp>
+#include <math2d/line.h>
 using namespace glm;
 
 
@@ -21,7 +20,7 @@ using namespace glm;
 #include "test_Graph2DPlanar.h"
 #include "Test_Triangulator.h"
 #include "Test_MatrixMxM.h"
-using namespace math;
+using namespace math2d;
 
 
 
@@ -33,6 +32,7 @@ using namespace std;
 
 void run_all_tests() {
 	Test_float_utils::all();
+	Test_polynom::all();
 	Test_MatrixMxM::all();
 	test_line_all();
 	test_Graph2DPlanar_all();
@@ -43,7 +43,8 @@ void run_all_tests() {
 
 
 int main(int argc, char** argv) {
-	test_bezier_bezier_intersections();
+	Test_polynom::test_polynom_N_roots();
+	//  test_bezier_bezier_intersections();
 
 	run_all_tests();
 	return 0;

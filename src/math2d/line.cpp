@@ -5,11 +5,11 @@
  *      Author: homac
  */
 
-#include "math/line.h"
-#include "config.h"
 #include "float-utils.h"
 
 #include <assert.h>
+#include <math2d/line.h>
+#include <math2d_config.h>
 
 
 
@@ -17,7 +17,7 @@
 using namespace glm;
 
 
-namespace math {
+namespace math2d {
 
 
 bool ray_left_intersects_segment_where_m_below(const vec2& s, const vec2& m, const vec2& n) {

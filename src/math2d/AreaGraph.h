@@ -5,8 +5,8 @@
  *      Author: homac
  */
 
-#ifndef MATH_AREAGRAPH_H_
-#define MATH_AREAGRAPH_H_
+#ifndef MATH2D_AREAGRAPH_H_
+#define MATH2D_AREAGRAPH_H_
 
 
 #include <iostream>
@@ -21,7 +21,7 @@
 using namespace glm;
 
 
-#include "MatrixMxM.h"
+#include <math2d/MatrixMxM.h>
 
 #include <limits>
 #include <vector>
@@ -33,15 +33,15 @@ using namespace glm;
 using namespace std;
 
 
-#include "math/line.h"
-#include "config.h"
+#include <math2d/line.h>
+#include <math2d_config.h>
 
-#include "math/Graph2DPlanar.h"
+#include <math2d/Graph2DPlanar.h>
 
 
 struct Test_AreaGraph;
 
-namespace math {
+namespace math2d {
 
 // TODO: AreaGraph consider using adjacency matrix
 // TODO: AreaGraph consider using integer only
@@ -1224,4 +1224,4 @@ public:
 
 } /* namespace math */
 
-#endif /* MATH_AREAGRAPH_H_ */
+#endif /* MATH2D_AREAGRAPH_H_ */

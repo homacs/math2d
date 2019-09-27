@@ -8,10 +8,10 @@
 #ifndef MATH_FLOAT_UTILS_H_
 #define MATH_FLOAT_UTILS_H_
 
-#include "config.h"
 #include <ieee754.h>
 #include <stdint.h>
 #include <math.h>
+#include <math2d_config.h>
 
 
 

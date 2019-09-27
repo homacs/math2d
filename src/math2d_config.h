@@ -5,12 +5,13 @@
  *      Author: homac
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef MATH2D_CONFIG_H_
+#define MATH2D_CONFIG_H_
 
 
+#include <assert.h>
 
-// TODO: move to config.h
+
 #ifdef __GNUC__
 #define unlikely(BOOLEAN_EXPR) __builtin_expect(BOOLEAN_EXPR, false)
 #define likely(BOOLEAN_EXPR)  __builtin_expect(BOOLEAN_EXPR, true)
@@ -18,8 +19,6 @@
 #define unlikely(BOOLEAN_EXPR) (BOOLEAN_EXPR)
 #define likely(BOOLEAN_EXPR)  (BOOLEAN_EXPR)
 #endif
-
-
 
 
 /**
@@ -42,4 +41,4 @@ static inline constexpr T& forced_cast(auto& item) {
 
 
 
-#endif /* CONFIG_H_ */
+#endif /* MATH2D_CONFIG_H_ */

@@ -6,7 +6,7 @@
  */
 
 
-namespace math {
+namespace math2d {
 
 
 

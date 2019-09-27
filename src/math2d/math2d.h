@@ -5,8 +5,8 @@
  *      Author: homac
  */
 
-#ifndef MATH_MATH2D_H_
-#define MATH_MATH2D_H_
+#ifndef MATH2D_MATH2D_H_
+#define MATH2D_MATH2D_H_
 #include "float-utils.h"
 
 /**
@@ -105,4 +105,4 @@ static inline bool about_equal(glm::tvec2<double, P> const & a, glm::tvec2<doubl
 
 
 
-#endif /* MATH_MATH2D_H_ */
+#endif /* MATH2D_MATH2D_H_ */

@@ -15,16 +15,16 @@
 
 #include <glm/gtx/vector_angle.hpp>
 
-#include "math/bezier.h"
-#include "math/line.h"
-#include "math/polynom.h"
+#include <math2d/bezier.h>
+#include <math2d/line.h>
+#include <math2d/polynom.h>
 
 using namespace glm;
 using namespace std;
 
 
 
-namespace math {
+namespace math2d {
 
 
 
@@ -480,53 +480,53 @@ struct __bezier_track_orig_t__ : public __bezier_t__ {
 	/*
 	 * Split tracking:
 	 *
-	 * The original bezier O(t_o)={o0, o1, o2, o3} has factor f = 1.0 .
-	 * Splitting O(t_o) at  t_o = f1  gives two beziers P(t_p) and Q(t_q)
-	 *         P(t_p)={p0,p1,p2,p3}    with f=f1, f_p0 = 0  and  p0 = O(f_p0) and p3 = O(f1)
-	 *         Q(t_q)={q0,q1,q2,q3}    with f=f1, f_q0 = f1  and  q0 = O(f_q0) and q3 = O(1)
+	 * The original bezier O(t_o)={o0, o1, o2, o3} has scaling factor s = 1.0 .
+	 * Splitting O(t_o) at  t_o = s1  gives two beziers P(t_p) and Q(t_q)
+	 *         P(t_p)={p0,p1,p2,p3}    with s_p=s1, b_p = 0  and  p0 = O(f_p0) and p3 = O(f1)
+	 *         Q(t_q)={q0,q1,q2,q3}    with s_q=1-s1, b_q = s1  and  q0 = O(f_q0) and q3 = O(1)
 	 * Any P(t_p) can be mapped to O(t_o) by the following expression
-	 *         t_o =  t_p/f + f_p0    gives   O(t_o) == P(t_p)
+	 *         t_o =  t_p/s_p + b_p    gives   O(t_o) == P(t_p)
 	 * Any Q(t_q) can be mapped to O(t_o) by the following expression
-	 *         t_o =  t_q/f + f_q0    gives   O(t_o) == Q(t_q)
+	 *         t_o =  t_q/s_q + b_q    gives   O(t_o) == Q(t_q)
 	 *
 	 * Splitting Q again, now at t_q = f2 (= 0.5), gives P2 and Q2 with:
-	 *         P2.f_p0 = Q.f_p0 + 0
-	 *         Q2.f_q0 = P2.f_p0 + f2*f
+	 *         P2.b = Q.b + 0
+	 *         Q2.b = P2.b + f2*s_p
 	 *         f    = f2*f
 	 * Using the same expression above to calculate t_o, will again satisfy
 	 *         O(t_o) == P(t_p)
 	 *       and
 	 *         O(t_o) == Q(t_q)
 	 */
-	double f;
-	double f_p0;
+	double s;
+	double b;
 
 
-	__bezier_track_orig_t__() : f(1.0), f_p0(0) {}
+	__bezier_track_orig_t__() : s(1.0), b(0) {}
 	__bezier_track_orig_t__(vec2 v0, vec2 v1, vec2 v2, vec2 v3) {
 		p0 = v0;
 		p1 = v1;
 		p2 = v2;
 		p3 = v3;
 		approximateExtend = approx_ext();
-		f = 1.0;
-		f_p0 = 0;
+		s = 1.0;
+		b = 0;
 	}
 
 
 
 	/** Splits this bezier at f in two new bezier b1 (interval [0,f[) and b2 (interval [f,1]) */
 	static void split(float t, __bezier_track_orig_t__& b1, __bezier_track_orig_t__& b2) {
-		double f = b1.f * t;
+		double f = b1.s * t;
 		super::split(t, b1, b2);
-		b1.f = f;
-		b1.f_p0 += 0;
-		b2.f = f;
-		b2.f_p0 += f;
+		b1.s = f;
+		b1.b += 0;
+		b2.s = f;
+		b2.b += f;
 	}
 
 	double getOriginalFactor(double t_p) {
-		return t_p/f + f_p0;
+		return t_p*s + b;
 	}
 
 
@@ -759,6 +759,39 @@ int bezier_bezier_intersections_t(
 
 
 
+void bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, double& result_t, vec2& result_v) {
+
+	vec2 a = p3 - 3.f*p2 + 3.f*p1 - p0;
+	vec2 b = 3.f * (p2 - 2.f*p1 + p0);
+	vec2 c = 3.f * (p1 - p0);
+
+	vec2 p0_v = p0-v;
+
+	double param[6];
+
+	param[0] = 3.f*scalar(a,a);            // t^5
+	param[1] = 5.f*scalar(a,b);            // t^4
+	param[2] = 4.f*scalar(a,c) + 2.f*scalar(b,b);  // t^3
+	param[3] = 3.f*(scalar(b,c) + scalar(a,p0_v)); // t^2
+	param[4] = scalar(c,c) + 2.f*scalar(b,p0_v);   // t^1
+	param[5] = scalar(c,p0_v);             // t^0
+
+	polynom_t<5> W(param);
+
+	double t_i[5];
+	int count = W.roots(t_i, tolerance, CO_DOMAIN_REAL_IN_0_1_INCLUSIVE);
+	result_t = INFINITY;
+	vec2 tmp;
+	double result_distance = INFINITY;
+	for (int i = 0; i < count; i++) {
+		bezier_point(float(t_i[i]), p0,p1,p2,p3, tmp);
+		double distance = length( v - tmp);
+		if (distance < result_distance) {
+			result_v = tmp;
+			result_t = t_i[i];
+		}
+	}
+}
 
 
 

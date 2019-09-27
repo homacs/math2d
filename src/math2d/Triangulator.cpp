@@ -5,12 +5,12 @@
  *      Author: homac
  */
 
-#include <math/AreaGraph.h>
+#include <math2d/Triangulator.h>
 
-namespace math {
+namespace math2d {
 
 #ifndef NDEBUG
-int AreaGraph::Area::total_areas_in_system = 0;
+int Triangulator::Area::total_areas_in_system = 0;
 #endif
 
 

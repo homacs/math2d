@@ -8,13 +8,13 @@
 #ifndef MATH_TEST_GRAPH2DPLANAR_H_
 #define MATH_TEST_GRAPH2DPLANAR_H_
 
-#include <math/Graph2DPlanar.h>
 #include "perf_clock.h"
 
 #include <glm/gtc/constants.hpp>
+#include <math2d/Graph2DPlanar.h>
 
 using namespace glm;
-using namespace math;
+using namespace math2d;
 
 void list_content(Graph2DPlanar& g) {
 

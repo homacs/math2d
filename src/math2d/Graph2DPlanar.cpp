@@ -5,9 +5,9 @@
  *      Author: homac
  */
 
-#include <math/AreaGraph.h>
+#include <math2d/AreaGraph.h>
 
-namespace math {
+namespace math2d {
 
 #ifndef NDEBUG
 int Graph2DPlanar::Edge::total_edges_in_system = 0;

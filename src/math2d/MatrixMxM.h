@@ -5,13 +5,13 @@
  *      Author: homac
  */
 
-#ifndef MATH_MATRIXMXM_H_
-#define MATH_MATRIXMXM_H_
+#ifndef MATH2D_MATRIXMXM_H_
+#define MATH2D_MATRIXMXM_H_
 
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-namespace math {
+namespace math2d {
 
 template <class T>
 class MatrixMxM {
@@ -237,4 +237,4 @@ private:
 
 } /* namespace math */
 
-#endif /* MATH_MATRIXMXM_H_ */
+#endif /* MATH2D_MATRIXMXM_H_ */

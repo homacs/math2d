@@ -5,20 +5,19 @@
  *      Author: homac
  */
 
-#ifndef MATH_BEZIER_H_
-#define MATH_BEZIER_H_
-
-#include "config.h"
+#ifndef MATH2D_BEZIER_H_
+#define MATH2D_BEZIER_H_
 
 #include <assert.h>
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
+#include <math2d_config.h>
 using namespace glm;
 
-#include "math/line.h"
+#include <math2d/line.h>
 #include "float-utils.h"
 
-namespace math {
+namespace math2d {
 
 
 static const double_mantissa_mask_t BEZIER_DOUBLE_PRECISION = double_mantissa_mask(16);
@@ -270,8 +269,10 @@ static inline bool bezier_merge(vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2 q0,
 	return canMerge;
 }
 
-
-
+/**
+ * Find point on bezier curve closets to given point v.
+ */
+int bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, double& t_v);
 
 /**
  * Intersections between bezier curve and a line segment from m to n.
@@ -300,4 +301,4 @@ int bezier_bezier_intersections_t(const vec2& p0, const vec2& p1, const vec2& p2
 }
 
 
-#endif /* MATH_BEZIER_H_ */
+#endif /* MATH2D_BEZIER_H_ */

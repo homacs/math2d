@@ -12,7 +12,7 @@
 #include <assert.h>
 
 
-#include "math/bezier.h"
+#include <math2d/bezier.h>
 
 
 static inline void testsub_bezier_split_merge(double f, vec2 const & v0, vec2 const & v1, vec2 const & v2, vec2 const & v3) {

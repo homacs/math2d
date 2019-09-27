@@ -8,13 +8,13 @@
 #ifndef MATH_TEST_AREAGRAPH_H_
 #define MATH_TEST_AREAGRAPH_H_
 
-#include <math/AreaGraph.h>
 #include "perf_clock.h"
 
 #include <glm/gtc/constants.hpp>
+#include <math2d/AreaGraph.h>
 
 using namespace glm;
-using namespace math;
+using namespace math2d;
 
 
 

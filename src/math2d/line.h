@@ -5,8 +5,8 @@
  *      Author: homac
  */
 
-#ifndef MATH_LINE_H_
-#define MATH_LINE_H_
+#ifndef MATH2D_LINE_H_
+#define MATH2D_LINE_H_
 
 
 #include <glm/geometric.hpp>
@@ -14,13 +14,13 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <math.h>
 #include <ieee754.h>
+#include <math2d/general.h>
+#include <math2d/math2d.h>
 
-#include "math/general.h"
-#include "math/math2d.h"
 #include "float-utils.h"
 
 
-namespace math {
+namespace math2d {
 
 
 
@@ -277,4 +277,4 @@ bool line_intersection_highp(const glm::dvec2& m, const glm::dvec2& n, const glm
 
 
 
-#endif /* MATH_LINE_H_ */
+#endif /* MATH2D_LINE_H_ */
