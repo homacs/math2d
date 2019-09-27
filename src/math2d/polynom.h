@@ -21,24 +21,75 @@ struct polynom_t;
 static inline double polynom1_value(double a, double b, double t);
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom1_real_roots(double a, double b, double t[1], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom1_roots(double a, double b, double t[1], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 static inline double polynom2_value(double a, double b, double c, double t);
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom2_real_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
+/**
+ *
+ * Searches extrema and saddle point
+ * for a given polyom
+ * 	  f(t) = a t^2 + b t + c
+ * and writes corresponding values for t in t_min, t_max.
+ *
+ * Term c is omitted in the function parameters, because it is not used.
+ *
+ * Infinite values in t_min and t_max represent non-existing or invalid extrema.
+ * @param a 1. term factor
+ * @param b 2. term factor
+ * @param t_min receives t_min, may be INFINITY to indicate invalid value.
+ * @param t_max receives t_max, may be INFINITY to indicate invalid value.
+ * @param domain valid range for t.
+ * @return 0: no extrema, 1: minimum or maximum, -1 saddle point t_min==t_max
+ */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom2_real_extrema(double a, double b, bool saddle, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom2_extrema(double a, double b, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
 static inline double polynom3_value(double a, double b, double c, double d, double t);
 
+/**
+ *
+ * Searches extrema and saddle point
+ * for a given polyom
+ * 	  f(t) = a t^3 + b t^2 + c t + d
+ * and writes corresponding values for t in t_min, t_max.
+ *
+ * Term d is omitted in the function parameters, because it is not used.
+ *
+ * Infinite values in t_min and t_max represent non-existing or invalid extrema.
+ * @param a 1. term factor
+ * @param b 2. term factor
+ * @param c 3. term factor
+ * @param accept_saddle_point whether saddle points have to be considered to be a double extrema or not.
+ * @param t_min receives t_min, may be INFINITY to indicate invalid value.
+ * @param t_max receives t_max, may be INFINITY to indicate invalid value.
+ * @param domain valid range for t.
+ * @return 0: no extrema, 1: minimum and/or maximum, -1 saddle point t_min==t_max
+ */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom3_real_extrema(double a, double b, double c, bool saddle, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom3_extrema(double a, double b, double c, bool accept_saddle_point, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
+/**
+ * General function to calculate real roots of a
+ * cubic polynom of the form:
+ *
+ *  f(t) = a*t^3 + b*t^2 + c*t + d
+ *
+ * resulting in up to 3 t_i satisfying f(t_i) == 0.
+ *
+ * All results for t are written to t[] and number of
+ * found roots is given in the return value of the function.
+ *
+ * @param t output parameter receiving the values for t where f(t) == 0
+ * @return number of roots
+ *
+ */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom3_real_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
 static inline void polynom_N_derivative(const double F[0], double f[0], int N);
@@ -72,7 +123,10 @@ template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
 static inline int __internal__polynom_N_roots(const double W[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
-
+/**
+ * Defines a polynom f(t) of degree N.
+ * Function f(t) := p[0] * t^N + p[1] * t^(N-1) + ... + p[N]
+ */
 template  <int N>
 struct polynom_t {
 	double p[N+1];
@@ -126,7 +180,7 @@ static inline double polynom1_value(double a, double b, double t) {
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom1_real_roots(double a, double b, double t[1], CO_DOMAIN_T domain) {
+static inline int polynom1_roots(double a, double b, double t[1], CO_DOMAIN_T domain) {
 	int count = 0;
 	// 0 = a*t + b
 	// t = -b/a
@@ -145,11 +199,11 @@ static inline double polynom2_value(double a, double b, double c, double t) {
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom2_real_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain) {
+static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain) {
 	int count = 0;
 
 	if (a == 0) {
-		count = polynom1_real_roots(b, c, t, domain);
+		count = polynom1_roots(b, c, t, domain);
 	} else {
 
 		// 0 = at^2 + bt + c
@@ -173,21 +227,8 @@ static inline int polynom2_real_roots(double a, double b, double c, double t[2],
 	return count;
 }
 
-/**
- *
- * Searches extrema and saddle point
- * for a given polyom
- * 	  f(t) = a t^2 + b t + c
- * and writes corresponding values for t in t_min, t_max.
- *
- * Term c is omitted in the function parameters, because it is not used.
- *
- * Infinite values in t_min and t_max represent non-existing or invalid extrema.
- *
- * @return 0: no extrema, 1: minimum and/or maximum, -1 saddle point t_min==t_max
- */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom2_real_extrema(double a, double b, bool saddle, double& t_min, double& t_max, CO_DOMAIN_T domain) {
+static inline int polynom2_extrema(double a, double b, double& t_min, double& t_max, CO_DOMAIN_T domain) {
 	double roots[1];
 	int n;
 	int result = 0;
@@ -201,7 +242,7 @@ static inline int polynom2_real_extrema(double a, double b, bool saddle, double&
 		// f'(t) = 2at + b
 		// f''(t) = 2a
 
-		n = polynom1_real_roots(2.f*a,b, roots, domain);
+		n = polynom1_roots(2.f*a,b, roots, domain);
 
 		for (int i = 0; i < n; i++) {
 
@@ -228,29 +269,14 @@ static inline double polynom3_value(double a, double b, double c, double d, doub
 
 
 
-/**
- * General function to calculate real roots of a
- * cubic polynom of the form:
- *
- *  f(t) = a*t^3 + b*t^2 + c*t + d
- *
- * resulting in up to 3 t_i satisfying f(t_i) == 0.
- *
- * All results for t are written to t[] and number of
- * found roots is given in the return value of the function.
- *
- * @param t output parameter receiving the values for t where f(t) == 0
- * @return number of roots
- *
- */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom3_real_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain)
+static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain)
 {
 	static const double PI =  math2d::CONSTANT_PI;
 	int count = 0;
 
 	if (a == 0) {
-		return polynom2_real_roots(b,c,d, t, domain);
+		return polynom2_roots(b,c,d, t, domain);
 	} else {
 		// a != 0
 		double A=b/a;
@@ -311,21 +337,8 @@ static inline int polynom3_real_roots(double a, double b, double c, double d, do
 }
 
 
-/**
- *
- * Searches extrema and saddle point
- * for a given polynom
- * 	  f(t) = a t^3 + b t^2 + c t + d
- * and writes corresponding values for t in t_min, t_max.
- *
- * Term d is omitted in the function parameters, because it is not used.
- *
- * Infinite values in t_min and t_max represent non-existing or invalid extrema.
- *
- * @return 0: no extrema, 1: minimum and/or maximum, -1 saddle point t_min==t_max
- */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
-static inline int polynom3_real_extrema(double a, double b, double c, bool saddle, double& t_min, double& t_max, CO_DOMAIN_T domain) {
+static inline int polynom3_extrema(double a, double b, double c, bool accept_saddle_point, double& t_min, double& t_max, CO_DOMAIN_T domain) {
 	double roots[2];
 	int n;
 	int result = 0;
@@ -334,7 +347,7 @@ static inline int polynom3_real_extrema(double a, double b, double c, bool saddl
 
 
 	if (a == 0) {
-		return polynom2_real_extrema(b,c, saddle, t_min, t_max, domain);
+		return polynom2_extrema(b,c, t_min, t_max, domain);
 	} else {
 
 		// f(t)=a t^3 + b t^2 + c t + d
@@ -343,7 +356,7 @@ static inline int polynom3_real_extrema(double a, double b, double c, bool saddl
 
 		double A = 3.f * a;
 		double B = 2.f * b;
-		n = polynom2_real_roots( A, B, c, roots, domain);
+		n = polynom2_roots( A, B, c, roots, domain);
 
 		for (int i = 0; i < n; i++) {
 
@@ -357,7 +370,7 @@ static inline int polynom3_real_extrema(double a, double b, double c, bool saddl
 				// minima
 				t_min = roots[i];
 				result = 1;
-			} else if (saddle) {
+			} else if (accept_saddle_point) {
 				// saddle point
 				t_min = t_max = roots[i];
 				result = -1;
@@ -456,9 +469,9 @@ static inline int polynom_N_roots(const double F[N], double roots[N], float tole
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
 static inline int polynom_N_roots(const double F[0], double f[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
-	if (n < 3 || n > 5) {
+	if (n < 4 || n > 5) {
 		// FIXME: make root guesses for any degree of a function
-		throw std::range_error("cannot deal with n < 3 or n > 5");
+		throw std::range_error("cannot deal with n < 4 or n > 5");
 	}
 
 	// generate guesses using the second derivate
@@ -482,11 +495,11 @@ static inline int __internal__polynom_N_roots(const double W[0], int n, double r
 	case 0:
 		return 0;
 	case 1:
-		return polynom1_real_roots(W[0], W[1], roots, domain);
+		return polynom1_roots(W[0], W[1], roots, domain);
 	case 2:
-		return polynom2_real_roots(W[0], W[1], W[2], roots, domain);
+		return polynom2_roots(W[0], W[1], W[2], roots, domain);
 	case 3:
-		return polynom3_real_roots(W[0], W[1], W[2], W[3], roots, domain);
+		return polynom3_roots(W[0], W[1], W[2], W[3], roots, domain);
 	default:
 		{
 			double* w = (double*)alloca(sizeof(double)*n);
@@ -495,7 +508,6 @@ static inline int __internal__polynom_N_roots(const double W[0], int n, double r
 		}
 	}
 }
-
 
 
 }; // namespace math

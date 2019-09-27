@@ -213,7 +213,7 @@ struct __bezier_t__ {
  *
  * @param t_min {t(min_x), t(min_y)}
  * @param t_max {t(max_x), t(max_y)}
- * @return true if at least one extrem was found
+ * @return true if at least one extreme was found
  */
 bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& p3, dvec2& t_min, dvec2& t_max) {
 	bool found = false;
@@ -224,10 +224,10 @@ bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& 
 
 	auto bounds = CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE;
 
-	analysis = polynom3_real_extrema(a.x,b.x,c.x, false, t_min.x, t_max.x, bounds);
+	analysis = polynom3_extrema(a.x,b.x,c.x, false, t_min.x, t_max.x, bounds);
 	found = (analysis != 0);
 
-	analysis = polynom3_real_extrema(a.y,b.y,c.y, false, t_min.y, t_max.y, bounds);
+	analysis = polynom3_extrema(a.y,b.y,c.y, false, t_min.y, t_max.y, bounds);
 	found |= (analysis != 0);
 
 	return found;
@@ -247,7 +247,7 @@ bool bezier_inflection_point(const vec2 p0, const vec2 p1, const vec2 p2, const 
 	double cxb = cross_z(c,b);
 
 	double t_i[2];
-	int n = polynom2_real_roots(bxa, cxa, cxb, t_i, CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE);
+	int n = polynom2_roots(bxa, cxa, cxb, t_i, CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE);
 
 	int count = 0;
 	for (int i = 0; i < n; i++) {
@@ -404,7 +404,7 @@ int bezier_line_segment_intersections_t(
 		C = (    cross_z(n_m,c))   / denominator;
 		D = (    cross_z(n_m,d_m)) / denominator;
 
-		count = polynom3_real_roots(A, B, C, D, t, interval_t);
+		count = polynom3_roots(A, B, C, D, t, interval_t);
 
 
 		// prepare calculation of s_i(t_i) based on x coordinates
@@ -420,7 +420,7 @@ int bezier_line_segment_intersections_t(
 		B = (    cross_z(b,  n_m)) / denominator;
 		C = (    cross_z(c,  n_m)) / denominator;
 		D = (    cross_z(d_m,n_m)) / denominator;
-		count = polynom3_real_roots(A, B, C, D, t, interval_t);
+		count = polynom3_roots(A, B, C, D, t, interval_t);
 
 		// prepare calculation of s_i(t_i) based on y coordinates
 		A = a.y;
