@@ -15,6 +15,7 @@
 using namespace glm;
 
 #include <math2d/line.h>
+#include <math2d/polynom.h>
 #include "float-utils.h"
 
 namespace math2d {
@@ -70,6 +71,63 @@ static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2 
 	p = mix(P4, P5, f);
 }
 
+
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T>
+static inline double bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, vec2& result_v, const CO_DOMAIN_T domain = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE) {
+
+	double result_t = INFINITY;
+
+	vec2 a = p3 - 3.f*p2 + 3.f*p1 - p0;
+	vec2 b = 3.f * (p2 - 2.f*p1 + p0);
+	vec2 c = 3.f * (p1 - p0);
+
+	vec2 p0_v = p0-v;
+
+	double param[6];
+
+	param[0] = 3.f*scalar(a,a);                    // t^5
+	param[1] = 5.f*scalar(a,b);                    // t^4
+	param[2] = 4.f*scalar(a,c) + 2.f*scalar(b,b);  // t^3
+	param[3] = 3.f*(scalar(b,c) + scalar(a,p0_v)); // t^2
+	param[4] = scalar(c,c) + 2.f*scalar(b,p0_v);   // t^1
+	param[5] = scalar(c,p0_v);                     // t^0
+
+	polynom_t<5> W(param);
+
+
+	// FIXME: calculate derived tolerance
+	// tolerance of W.roots() is expressed in respect to variable t
+	// but we are looking for the tolerance in values of B(t).
+	// Thus, tolerance range for t has to be scaled down by the
+	// overall length of the curve.
+	// t_tolerance = v_tolerance / length(B)
+	// To shorten it up, we approximate the length by the
+	// sum of lengths of the bounding box cage, which actually
+	// gives us a higher accuracy than needed.
+	float len = length(p1-p0)+length(p2-p1)+length(p3-p2);
+	float t_tolerance = tolerance/len;
+
+	double t_i[5];
+	// we do not restrict the interval of valid roots here,
+	// to find roots outside the 0:1 range.
+	// Tis way, we will also consider the edges, if we
+	// have found roots outside the range.
+	int count = W.roots(t_i, t_tolerance);
+	vec2 tmp;
+	double result_distance = INFINITY;
+	for (int i = 0; i < count; i++) {
+		double t = t_i[i];
+		t = domain.clip(t);
+		bezier_point(t, p0,p1,p2,p3, tmp);
+		double distance = length( v - tmp);
+		if (distance < result_distance) {
+			result_v = tmp;
+			result_t = t;
+			result_distance = distance;
+		}
+	}
+	return result_t;
+}
 
 
 /**

@@ -20,7 +20,7 @@ static inline T cross_z(glm::tvec2<T, P> const & a, glm::tvec2<T, P> const & b)
 }
 
 /**
- * Determines scalar product (a*b).
+ * scalar product (a*b).
  */
 template <typename T, glm::precision P>
 static inline T scalar(glm::tvec2<T, P> const & a, glm::tvec2<T, P> const & b)
@@ -68,9 +68,6 @@ static inline glm::tvec2<double, P> precision_round(glm::tvec2<double, P> a, dou
 }
 
 
-/**
- * Determines scalar product (a*b).
- */
 template <glm::precision P>
 static inline constexpr bool about_equal(glm::tvec2<float, P> const & a, glm::tvec2<float, P> const & b, float tolerance)
 {
@@ -79,18 +76,12 @@ static inline constexpr bool about_equal(glm::tvec2<float, P> const & a, glm::tv
 
 
 
-/**
- * Determines scalar product (a*b).
- */
 template <glm::precision P>
 static inline bool about_equal(glm::tvec2<float, P> const & a, glm::tvec2<float, P> const & b, float_mantissa_mask_t precision)
 {
 	return float_mantissa_trunc(glm::length(a-b), precision) == 0;
 }
 
-/**
- * Determines scalar product (a*b).
- */
 template <glm::precision P>
 static inline bool about_equal(glm::tvec2<double, P> const & a, glm::tvec2<double, P> const & b, double_mantissa_mask_t precision)
 {

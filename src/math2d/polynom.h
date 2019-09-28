@@ -20,12 +20,12 @@ struct polynom_t;
 
 static inline double polynom1_value(double a, double b, double t);
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom1_roots(double a, double b, double t[1], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 static inline double polynom2_value(double a, double b, double c, double t);
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 /**
@@ -45,7 +45,7 @@ static inline int polynom2_roots(double a, double b, double c, double t[2], CO_D
  * @param domain valid range for t.
  * @return 0: no extrema, 1: minimum or maximum, -1 saddle point t_min==t_max
  */
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom2_extrema(double a, double b, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
@@ -70,7 +70,7 @@ static inline double polynom3_value(double a, double b, double c, double d, doub
  * @param domain valid range for t.
  * @return 0: no extrema, 1: minimum and/or maximum, -1 saddle point t_min==t_max
  */
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom3_extrema(double a, double b, double c, bool accept_saddle_point, double& t_min, double& t_max, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 /**
@@ -88,7 +88,7 @@ static inline int polynom3_extrema(double a, double b, double c, bool accept_sad
  * @return number of roots
  *
  */
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
@@ -104,13 +104,13 @@ static inline double polynom_N_value(const double f[0], int n, double t);
  */
 static inline double polynom_N_root(const double F[0], const double f[0], int n, double guess, float tolerance);
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], const double f[0], int n, double guesses[0], int num_guesses, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], double f[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
-template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[N], double roots[N], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ static inline int polynom_N_roots(const double F[N], double roots[N], float tole
 
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int __internal__polynom_N_roots(const double W[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
@@ -161,7 +161,7 @@ struct polynom_t {
 		return polynom_N_root(p, dfdt.p, N, guess, tolerance);
 	}
 
-	template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+	template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 	int roots(double roots[N], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL) {
 		return polynom_N_roots<N>(p,roots, tolerance, domain);
 	}
@@ -179,7 +179,7 @@ static inline double polynom1_value(double a, double b, double t) {
 }
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom1_roots(double a, double b, double t[1], CO_DOMAIN_T domain) {
 	int count = 0;
 	// 0 = a*t + b
@@ -198,7 +198,7 @@ static inline double polynom2_value(double a, double b, double c, double t) {
 }
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain) {
 	int count = 0;
 
@@ -227,7 +227,7 @@ static inline int polynom2_roots(double a, double b, double c, double t[2], CO_D
 	return count;
 }
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom2_extrema(double a, double b, double& t_min, double& t_max, CO_DOMAIN_T domain) {
 	double roots[1];
 	int n;
@@ -269,7 +269,7 @@ static inline double polynom3_value(double a, double b, double c, double d, doub
 
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain)
 {
 	static const double PI =  math2d::CONSTANT_PI;
@@ -337,7 +337,7 @@ static inline int polynom3_roots(double a, double b, double c, double d, double 
 }
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom3_extrema(double a, double b, double c, bool accept_saddle_point, double& t_min, double& t_max, CO_DOMAIN_T domain) {
 	double roots[2];
 	int n;
@@ -409,7 +409,7 @@ static inline double polynom_N_root(const double F[0], const double f[0], int n,
 }
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], const double f[0], int n, double guesses[0], int num_guesses, double roots[0], float tolerance, CO_DOMAIN_T domain) {
 	int count = 0;
 	double t;
@@ -455,7 +455,7 @@ static inline int polynom_N_roots(const double F[0], const double f[0], int n, d
 }
 
 
-template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[N], double roots[N], float tolerance, CO_DOMAIN_T domain) {
 	int i;
 	for (i = 0; i <= N && F[i] == 0; i++);
@@ -467,7 +467,7 @@ static inline int polynom_N_roots(const double F[N], double roots[N], float tole
 
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], double f[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
 	if (n < 4 || n > 5) {
 		// FIXME: make root guesses for any degree of a function
@@ -487,7 +487,7 @@ static inline int polynom_N_roots(const double F[0], double f[0], int n, double 
 }
 
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_NUMBERS_T>
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int __internal__polynom_N_roots(const double W[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
 	assert(W[0] != 0);
 

@@ -41,7 +41,7 @@ static const long double CONSTANT_PI = 3.14159265358979323846264338327950288;
  *
  * will accept all real numbers in range ]0:256].
  *
- * For most cases where bounds are unlimited, there predefined
+ * For most cases where bounds are unlimited, there are predefined
  * structures, which have better runtime performance.
  *
  *		CO_DOMAIN_REAL       all real numbers.
@@ -54,12 +54,11 @@ static const long double CONSTANT_PI = 3.14159265358979323846264338327950288;
  * @param im_min lower bound for imaginary part of complex numbers
  * @param im_max upper bound for imaginary part of complex numbers
  */
-template <typename T = double>
 struct co_domain_t {
-	const T re_min = -DBL_MAX;
-	const T re_max = DBL_MAX;
-	const T im_min = -DBL_MAX;
-	const T im_max = DBL_MAX;
+	const double re_min = -DBL_MAX;
+	const double re_max = DBL_MAX;
+	const double im_min = -DBL_MAX;
+	const double im_max = DBL_MAX;
 
 	co_domain_t(const double _re_min = -DBL_MAX, const double _re_max = DBL_MAX, double _im_min = -DBL_MAX, double _im_max = DBL_MAX)
 	:
@@ -69,15 +68,19 @@ struct co_domain_t {
 		im_max(_im_max)
 	{}
 
-	bool operator() (T re) const {
+	bool operator() (double re) const {
 		return re_min <= re && re <= re_max;
 	}
-	bool operator() (T re, T im) const {
-		return (im_min <= im && im <= im_max) && *this(re);
+	bool operator() (double re, double im) const {
+		return operator()(re) && (im_min <= im && im <= im_max);
 	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
+	}
+
 };
 
-const struct CO_DOMAIN_REAL_NUMBERS_T {
+const struct CO_DOMAIN_REAL_T {
 	const double re_min = -DBL_MAX;
 	const double re_max = DBL_MAX;
 	const double im_min = 0;
@@ -88,9 +91,12 @@ const struct CO_DOMAIN_REAL_NUMBERS_T {
 	bool operator() (double re, double im) const {
 		return finite(re) && (im == 0);
 	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
+	}
 } CO_DOMAIN_REAL;
 
-const struct CO_DOMAIN_COMPLEX_NUMBERS_T {
+const struct CO_DOMAIN_COMPLEX_T {
 	const double re_min = -DBL_MAX;
 	const double re_max = DBL_MAX;
 	const double im_min = -DBL_MAX;
@@ -100,6 +106,9 @@ const struct CO_DOMAIN_COMPLEX_NUMBERS_T {
 	}
 	bool operator() (double re, double im) const {
 		return finite(re) && finite(im);
+	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
 	}
 } CO_DOMAIN_COMPLEX;
 
@@ -111,6 +120,9 @@ const struct CO_DOMAIN_REAL_IN_NEG_1_POS_1_T {
 	bool operator() (double value, double im = 0.0) const {
 		return re_min <= value && value <= re_max && (im == 0.0);
 	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
+	}
 } CO_DOMAIN_REAL_IN_NEG_1_POS_1; /**< All real numbers in range [-1:1] */
 
 const struct CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T {
@@ -118,11 +130,14 @@ const struct CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T {
 	const double re_max = 1;
 	const double im_min = 0;
 	const double im_max = 0;
-	bool operator() (double value) const {
-		return re_min <= value && value <= re_max;
+	bool operator() (double re) const {
+		return re_min <= re && re <= re_max;
 	}
 	bool operator() (double value, double im) const {
 		return re_min <= value && value <= re_max && (im == 0.0);
+	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
 	}
 } CO_DOMAIN_REAL_IN_0_1_INCLUSIVE; /**< All real numbers in range [0:1] */
 static const struct CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T {
@@ -130,8 +145,14 @@ static const struct CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T {
 	const double re_max = 1;
 	const double im_min = 0;
 	const double im_max = 0;
-	bool operator() (double value) const {
-		return 0 < value && value < 1;
+	bool operator() (double re) const {
+		return 0 < re && re < 1;
+	}
+	bool operator() (double re, double im) const {
+		return 0 < re && re < 1 && (im == 0.0);
+	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
 	}
 } CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE; /**< All real numbers in range ]0:1[ */
 

@@ -263,8 +263,10 @@ bool bezier_inflection_point(const vec2 p0, const vec2 p1, const vec2 p2, const 
 }
 
 
-/* This function is used for comparison/debugging only.
- * Use faster (non-iterative) function bezier_line_segment_intersections instead. */
+/**
+ * This function is used for comparison/debugging purposes only.
+ * Use faster (non-iterative) function bezier_line_segment_intersections instead.
+ */
 int bezier_line_segment_intersections_iterative(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 result[3]) {
 	assert(tolerance >= 0.000001f);
 	int count = 0;
@@ -757,41 +759,6 @@ int bezier_bezier_intersections_t(
 	return count;
 }
 
-
-
-void bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, double& result_t, vec2& result_v) {
-
-	vec2 a = p3 - 3.f*p2 + 3.f*p1 - p0;
-	vec2 b = 3.f * (p2 - 2.f*p1 + p0);
-	vec2 c = 3.f * (p1 - p0);
-
-	vec2 p0_v = p0-v;
-
-	double param[6];
-
-	param[0] = 3.f*scalar(a,a);            // t^5
-	param[1] = 5.f*scalar(a,b);            // t^4
-	param[2] = 4.f*scalar(a,c) + 2.f*scalar(b,b);  // t^3
-	param[3] = 3.f*(scalar(b,c) + scalar(a,p0_v)); // t^2
-	param[4] = scalar(c,c) + 2.f*scalar(b,p0_v);   // t^1
-	param[5] = scalar(c,p0_v);             // t^0
-
-	polynom_t<5> W(param);
-
-	double t_i[5];
-	int count = W.roots(t_i, tolerance, CO_DOMAIN_REAL_IN_0_1_INCLUSIVE);
-	result_t = INFINITY;
-	vec2 tmp;
-	double result_distance = INFINITY;
-	for (int i = 0; i < count; i++) {
-		bezier_point(float(t_i[i]), p0,p1,p2,p3, tmp);
-		double distance = length( v - tmp);
-		if (distance < result_distance) {
-			result_v = tmp;
-			result_t = t_i[i];
-		}
-	}
-}
 
 
 

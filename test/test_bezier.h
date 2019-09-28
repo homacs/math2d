@@ -29,7 +29,7 @@ static inline void testsub_bezier_split_merge(double f, vec2 const & v0, vec2 co
 
 
 	// tolerance = 0.0001 % of its approximated total length
-	float tolerance = fabs(glm::length(p1-p0)) + fabs(glm::length(p2-p1)) + fabs(glm::length(p3-p2));
+	float tolerance = glm::length(p1-p0) + glm::length(p2-p1) + glm::length(p3-p2);
 	tolerance = 0.000001 * tolerance;
 
 	bezier_split_highp(f, p0, p1, p2, p3, q0, q1, q2, q3);
@@ -141,6 +141,24 @@ static inline void test_bezier_inflection_point() {
 
 }
 
+
+static inline void test_bezier_point_closest_point() {
+	float tolerance = 0.000001;
+	vec2 result_v;
+	float t;
+	// with inflection point
+	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(0,7), tolerance, result_v);
+	assert(about_equal((float)t, 0.f, tolerance));
+
+	// with inflection point
+	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(3.0,1.5), tolerance, result_v);
+	assert(about_equal((float)t, 1.f, tolerance));
+
+	// with inflection point
+	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(1.0,4.5), tolerance, result_v);
+	assert(about_equal((float)t, 0.484173596f, tolerance));
+
+}
 
 
 static inline void test_bezier_line_intersections_iterative() {
@@ -318,6 +336,7 @@ static inline void test_bezier_bezier_intersections() {
 void test_bezier_all() {
 	test_bezier_extrema();
 	test_bezier_inflection_point();
+	test_bezier_point_closest_point();
 	test_bezier_split_merge();
 	test_bezier_line_intersections_iterative();
 	test_bezier_line_intersections();
