@@ -189,7 +189,7 @@ struct __bezier_t__ {
 	 *   - 1 if primitive bounding box intersects
 	 *     0 if no intersection is possible
 	 */
-	int bb_intersects_t(const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, vec2& v, double& t) {
+	int bb_intersects_t_old(const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, vec2& v, double& t) {
 		double result_s[3];
 		double result_t[3];
 		float tolerance = 0;
@@ -221,6 +221,47 @@ struct __bezier_t__ {
 					);
 		}
 	}
+
+
+	int bb_intersects_t(const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, vec2& v, double& t_q) {
+		double result_s[3];
+		double result_t[3];
+		const float tolerance = 0;
+		double t_q_samples[4] = {0};
+		int t_count = 0;
+		int evaluation_result = 0;
+		int total_count = 0;
+
+		int c03 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p3, tolerance, result_t, result_s);
+		total_count += c03;
+		if (c03 > 0) t_q_samples[t_count++] = result_t[0];
+		int c01 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p1, tolerance, result_t, result_s);
+		total_count += c01;
+		if (c01 > 0) t_q_samples[t_count++] = result_t[0];
+		int c12 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p1, p2, tolerance, result_t, result_s);
+		total_count += c12;
+		if (c12 > 0) t_q_samples[t_count++] = result_t[0];
+		int c23 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p2, p3, tolerance, result_t, result_s);
+		total_count += c23;
+		if (c23 > 0) t_q_samples[t_count++] = result_t[0];
+
+		if (c03 == 1 && total_count == 2) {
+			t_q = (t_q_samples[0] + t_q_samples[1])/2;
+			bezier_point(t_q, q0,q1,q2,q3, v);
+			evaluation_result = 1;
+		} else {
+			if (t_count) {
+				int i;
+				for (i = 0; i < t_count; i++) t_q += t_q_samples[i];
+				t_q /= i;
+				bezier_point(t_q, q0,q1,q2,q3, v);
+			}
+			evaluation_result = -(total_count > 0);
+		}
+		return evaluation_result;
+	}
+
+
 
 };
 
@@ -546,8 +587,6 @@ int bezier_bezier_intersections_t(
 	assert(tolerance >= 0.0000009f);
 	const double DOUBLE_INVALID = INFINITY;
 	int count = 0;
-	vec2 v;
-	vec2 v_f; // value according to factor
 
 
 	// work stack
@@ -555,9 +594,9 @@ int bezier_bezier_intersections_t(
 
 	// temporary variables
 	bezier_t second_half;
-	float f;
 	// interpolation factor for Q(t_q)
 	double t_q;
+	vec2 v_q;
 
 	// Last sample of a valid intersection point
 	// for the bezier part, currently worked on.
@@ -565,6 +604,7 @@ int bezier_bezier_intersections_t(
 	vec2 valid_sample = VEC2_INVALID;
 
 
+	float f;
 	if (bezier_inflection_point(p0, p1, p2, p3, f)) {
 		// avoid special case: bezier with turning point
 		bezier_t b(p0, p1, p2, p3);
@@ -575,6 +615,9 @@ int bezier_bezier_intersections_t(
 	} else {
 		work.push(bezier_t(p0,p1,p2,p3));
 	}
+
+	double t_tolerance = tolerance/(1<<4);
+
 	// first split
 	while (work.size()) {
 		BEZIER_BEZIER_COUNT();
@@ -584,14 +627,14 @@ int bezier_bezier_intersections_t(
 		//
 		// check for intersection
 		//
-		v = VEC2_INVALID;
-		int intersecting = b.bb_intersects_t(q0, q1, q2, q3, v, t_q);
+		v_q = VEC2_INVALID;
+		int intersecting = b.bb_intersects_t(q0, q1, q2, q3, v_q, t_q);
 		if (intersecting) {
 			// interpolation factor for P(t_p)
 			double t_p = DOUBLE_INVALID;
 
 			if (unlikely(b.maximumExtend() <= tolerance
-					|| length(valid_sample-v) <= (tolerance*2)))
+					|| length(valid_sample-v_q) <= (tolerance*2)))
 			{
 
 				// accuracy ok
@@ -630,7 +673,7 @@ int bezier_bezier_intersections_t(
 					// at low deviations of t.
 					vec2 v_p;
 					bezier_point(t_i[best], p0, p1, p2, p3, v_p);
-					if (length(v-v_p) <= tolerance) {
+					if (length(v_q-v_p) <= tolerance) {
 						t_p = t_i[best];
 					}
 				}
@@ -639,8 +682,8 @@ int bezier_bezier_intersections_t(
 					// didn't found a solution yet.
 					// check if closest point on P satisfies (distance <= tolerance)
 					vec2 v_p;
-					double t = bezier_point_closest_point_t(p0,p1,p2,p3,v, tolerance, v_p, interval_on_P);
-					if (length(v-v_p) <= tolerance) {
+					double t = bezier_point_closest_point_t(p0,p1,p2,p3,v_q, tolerance, v_p, interval_on_P);
+					if (length(v_q-v_p) <= tolerance) {
 						t_p = t;
 					}
 				}
@@ -648,16 +691,26 @@ int bezier_bezier_intersections_t(
 
 			if (unlikely(t_p != DOUBLE_INVALID)) {
 				// we have found a solution
-				result_t_q[count] = t_q;
-				result_t_p[count] = t_p;
-				count++;
-
+				if (count
+						&& about_equal(result_t_q[count-1], t_q, t_tolerance)
+						&& about_equal(result_t_p[count-1], t_p, t_tolerance)
+						&& bezier_equal_point(t_p, p0,p1,p2,p3, v_q, tolerance)
+						)
+				{
+					// ignore duplicates
+				}
+				else
+				{
+					result_t_q[count] = t_q;
+					result_t_p[count] = t_p;
+					count++;
+				}
 				valid_sample = VEC2_INVALID;
 				work.pop(); // done with this entry
 			} else {
 				// accuracy still too low -> split again
 				if (intersecting == 1) {
-					valid_sample = v;
+					valid_sample = v_q;
 				}
 				// TODO: performance: use reference to next item on stack instead of local variables?
 				bezier_t::split(0.5, b, second_half);

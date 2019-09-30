@@ -322,26 +322,57 @@ static inline void test_bezier_line_intersections() {
 }
 
 
+static inline void testsub_bezier_bezier_intersections(
+		vec2 p0, vec2 p1, vec2 p2, vec2 p3,
+		vec2 q0, vec2 q1, vec2 q2, vec2 q3,
+		float tolerance,
+		int expected_count
+		)
+{
+	vec2 v[9];
+	double t_p[9];
+	double t_q[9];
+	EVALUATIONS_RESET();
+
+	int count = bezier_bezier_intersections_t(
+			p0, p1, p2, p3,
+			q0, q1, q2, q3,
+			tolerance, t_p, t_q);
+	assert(count == expected_count);
+	for (int i = 0; i < count; i++) {
+		vec2 p;
+		bezier_point(t_p[i], p0, p1, p2, p3, p);
+		vec2 q;
+		bezier_point(t_q[i], q0, q1, q2, q3, q);
+		assert(about_equal(p,q,tolerance));
+		v[i] = (p+q)*0.5f;
+	}
+
+	EVALUATIONS_REPORT();
+
+}
 
 
 static inline void test_bezier_bezier_intersections() {
 
 	float tolerance = 0.000001f;
-	vec2 p[9];
-	double t_p[9];
-	double t_q[9];
-	int count;
 
-	EVALUATIONS_RESET();
 	// no turning point, same bezier mirrored
 	// two intersections
-	count = bezier_bezier_intersections_t(
+	testsub_bezier_bezier_intersections(
 			vec2(1,0), vec2(1,3), vec2(3,3), vec2(3,0),
 			vec2(1,3), vec2(1,0), vec2(3,0), vec2(3,3),
-			tolerance, t_p, t_q);
-	assert(count == 2);
+			tolerance, 2);
 
-	EVALUATIONS_REPORT();
+	testsub_bezier_bezier_intersections(
+			vec2(1,0), vec2(1,0), vec2(1,0), vec2(1,0),
+			vec2(2,0), vec2(2,0), vec2(2,0), vec2(2,0),
+			tolerance, 0);
+
+	testsub_bezier_bezier_intersections(
+			vec2(0,1), vec2(0,1), vec2(2,1), vec2(2,1),
+			vec2(1,0), vec2(1,0), vec2(1,2), vec2(1,2),
+			tolerance, 1);
 
 
 

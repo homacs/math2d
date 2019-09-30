@@ -126,7 +126,14 @@ static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const &
 	assert(0 <= f && f <= 1.0);
 	p = mix(p0, p1, f);
 }
+static inline void bezier_point_highp(double f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2& p) {
+	assert(0 <= f && f <= 1.0);
 
+	glm::dvec2 P0 = mix(p0, p1, f);
+	glm::dvec2 P1 = mix(p1, p2, f);
+
+	p = mix(P0, P1, f);
+}
 static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2& p) {
 	assert(0 <= f && f <= 1.0);
 
@@ -169,6 +176,15 @@ static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const &
 	p = mix(P4, P5, f);
 }
 
+
+static inline bool bezier_equal_point(float t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3,
+			glm::vec2 const & v,float tolerance)
+{
+
+	glm::vec2 w;
+	bezier_point(t, p0,p1,p2,p3,w);
+	return about_equal(v,w,tolerance);
+}
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T>
 static inline double bezier_point_closest_point_t (const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& v, float tolerance, glm::vec2& result_v, const CO_DOMAIN_T domain) {
@@ -260,12 +276,12 @@ static inline double bezier_point_closest_point_t (const glm::vec2& p0, const gl
  * p = P(f_t)
  * m = P'(f_t)
  */
-static inline void bezier_tangent(float f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m) {
+static inline void bezier_tangent(double f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m) {
 	// p = P(f_t)
-	bezier_point(f_t, p0, p1, p2, p3, p);
+	bezier_point_highp(f_t, p0, p1, p2, p3, p);
 
 	// m = P'(f_t)
-	bezier_point(f_t, p1-p0, p2-p1, p3-p2, m);
+	bezier_point_highp(f_t, p1-p0, p2-p1, p3-p2, m);
 	// m *= 3.f; <-- doesn't change anything
 }
 

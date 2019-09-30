@@ -53,8 +53,7 @@ void run_all_tests() {
 
 
 int main(int argc, char** argv) {
-	test_bezier_point_closest_point();
-	//  test_bezier_bezier_intersections();
+	test_bezier_bezier_intersections();
 
 	run_all_tests();
 	return 0;

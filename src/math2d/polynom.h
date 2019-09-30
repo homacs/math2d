@@ -573,24 +573,16 @@ static inline int polynom_N_roots(const double F[0], double f[0], int n, double 
 	}
 	// note: extrema are sorted because roots get sorted
 
-	// must have at least 1 extrema, because of n > 3
-	assert(num_extrema > 0);
-
 
 	int count = 0;
 	double F_extrema;
 
+	if (num_extrema == 0) {
+		// function has no extrema
 
-	// determine root between -INFINITY and extrema[0]
+		// find single root
 
-	// check if extrema is a root
-	F_extrema = polynom_N_value(F, n, extrema[0]);
-
-	if (about_equal(F_extrema, 0, (double)tolerance)) {
-		roots[count++] = extrema[0];
-	} else if (domain.re_min < extrema[0]) {
-
-		co_domain_t interval (domain.re_min, extrema[0], 0, 0);
+		co_domain_t interval (domain.re_min, domain.re_max, 0, 0);
 		// TODO: we can get better guesses I guess :P
 		// for now, we just make sure to search in the proper direction
 		double guess = extrema[0] - 100*tolerance;
@@ -599,17 +591,52 @@ static inline int polynom_N_roots(const double F[0], double f[0], int n, double 
 			assert (finite(guess));
 			roots[count++] = guess;
 		}
-	}
 
-	// generate guesses from extrema
-	for (int i = 1; i < num_extrema; i++) {
-		F_extrema = polynom_N_value(F, n, extrema[i]);
+	} else {
+		// we have at least one extrema
+
+		// determine root between -INFINITY and extrema[0]
+
+		// check if extrema is a root
+		F_extrema = polynom_N_value(F, n, extrema[0]);
+
 		if (about_equal(F_extrema, 0, (double)tolerance)) {
-			roots[count++] = extrema[i];
-		} else if (domain(extrema[i-1]) || domain(extrema[i])) {
-			co_domain_t interval (extrema[i-1], extrema[i], 0, 0);
-			double guess = (extrema[i-1] + extrema[i])/2;
+			roots[count++] = extrema[0];
+		} else if (domain.re_min < extrema[0]) {
 
+			co_domain_t interval (domain.re_min, extrema[0], 0, 0);
+			// TODO: we can get better guesses I guess :P
+			// for now, we just make sure to search in the proper direction
+			double guess = extrema[0] - 100*tolerance;
+			if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
+				guess = polynom_N_root(F, f, n, guess, tolerance, interval);
+				assert (finite(guess));
+				roots[count++] = guess;
+			}
+		}
+
+		// generate guesses from extrema
+		for (int i = 1; i < num_extrema; i++) {
+			F_extrema = polynom_N_value(F, n, extrema[i]);
+			if (about_equal(F_extrema, 0, (double)tolerance)) {
+				roots[count++] = extrema[i];
+			} else if (domain(extrema[i-1]) || domain(extrema[i])) {
+				co_domain_t interval (extrema[i-1], extrema[i], 0, 0);
+				double guess = (extrema[i-1] + extrema[i])/2;
+
+				if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
+					guess = polynom_N_root(F, f, n, guess, tolerance, interval);
+					assert (finite(guess));
+					roots[count++] = guess;
+				}
+			}
+		}
+
+		if (domain(extrema[num_extrema-1])) {
+			co_domain_t interval (extrema[num_extrema-1], domain.re_max, 0, 0);
+			// TODO: we can get better guesses I guess :P
+			// for now, we just make sure to search in the proper direction
+			double guess = extrema[num_extrema-1] + 100*tolerance;
 			if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
 				guess = polynom_N_root(F, f, n, guess, tolerance, interval);
 				assert (finite(guess));
@@ -617,19 +644,6 @@ static inline int polynom_N_roots(const double F[0], double f[0], int n, double 
 			}
 		}
 	}
-
-	if (domain(extrema[num_extrema-1])) {
-		co_domain_t interval (extrema[num_extrema-1], domain.re_max, 0, 0);
-		// TODO: we can get better guesses I guess :P
-		// for now, we just make sure to search in the proper direction
-		double guess = extrema[num_extrema-1] + 100*tolerance;
-		if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
-			guess = polynom_N_root(F, f, n, guess, tolerance, interval);
-			assert (finite(guess));
-			roots[count++] = guess;
-		}
-	}
-
 	return count;
 
 }
