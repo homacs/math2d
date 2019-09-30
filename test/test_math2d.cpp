@@ -1,4 +1,10 @@
 
+
+
+#define MATH2D_EVALUATE   1
+
+
+
 #include <iostream>
 
 #include <string>
@@ -15,14 +21,10 @@ using namespace std;
 
 
 #include <glm/gtc/constants.hpp>
-#include <math2d/line.h>
 using namespace glm;
 
 
 
-
-#define BEZIER_BEZIER_EVALUATE   1
-#define POLYNOM_N_ROOTS_EVALUATE 1
 
 
 

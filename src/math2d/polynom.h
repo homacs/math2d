@@ -8,13 +8,21 @@
 #ifndef MATH2D_POLYNOM_H_
 #define MATH2D_POLYNOM_H_
 
+
+#include "math2d-config.h"
+
+
 #include <stdexcept>
 #include <string.h>
 #include <algorithm>
 #include <assert.h>
-#include <math2d/utils.h>
 
-#include "math2d/math2d.h"
+
+
+#include "float-utils.h"
+
+#include "math2d/precision.h"
+#include "math2d/utils.h"
 
 namespace math2d {
 
@@ -181,10 +189,7 @@ static inline double polynom_N_root(const double F[0], const double f[0], int n,
 //          I M P L E M E N T A T I O N S     B E L O W
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef POLYNOM_N_ROOTS_EVALUATE
-#	define POLYNOM_N_ROOTS_EVALUATE 0
-#endif
-#if  POLYNOM_N_ROOTS_EVALUATE
+#ifdef MATH2D_EVALUATE
 	extern int POLYNOM_N_ROOTS_iterations;
 #	define POLYNOM_N_ROOTS_COUNT()             (POLYNOM_N_ROOTS_iterations++)
 #	define POLYNOM_N_ROOTS_EVALUATION_RESET()  (POLYNOM_N_ROOTS_iterations = 0)

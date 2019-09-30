@@ -9,6 +9,13 @@
 #define MATH2D_PRECISION_H_
 
 
+#include "math2d-config.h"
+
+#include <glm/glm.hpp>
+
+
+#include "float-utils.h"
+
 namespace math2d {
 
 

@@ -12,8 +12,7 @@
 #include <assert.h>
 
 
-
-#include <math2d/bezier.h>
+#include "math2d/bezier.h"
 
 
 #define EVALUATIONS_RESET() BEZIER_BEZIER_EVALUATION_RESET(); POLYNOM_N_ROOTS_EVALUATION_RESET()

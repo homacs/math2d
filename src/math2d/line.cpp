@@ -5,11 +5,14 @@
  *      Author: homac
  */
 
+#include <assert.h>
+
 #include "float-utils.h"
 
-#include <assert.h>
-#include <math2d/line.h>
-#include <math2d_config.h>
+
+
+#include "math2d/precision.h"
+#include "math2d/line.h"
 
 
 

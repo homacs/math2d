@@ -8,6 +8,8 @@
 #ifndef MATH2D_CODOMAIN_H_
 #define MATH2D_CODOMAIN_H_
 
+#include "math2d-config.h"
+
 
 namespace math2d {
 

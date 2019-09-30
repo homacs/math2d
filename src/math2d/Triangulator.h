@@ -8,6 +8,7 @@
 #ifndef MATH2D_TRIANGULATOR_H_
 #define MATH2D_TRIANGULATOR_H_
 
+#include "math2d-config.h"
 
 #include <iostream>
 
@@ -34,7 +35,7 @@ using namespace std;
 
 
 #include <math2d/line.h>
-#include <math2d_config.h>
+#include <math2d-config.h>
 
 #include <math2d/Graph2DPlanar.h>
 

@@ -8,13 +8,13 @@
 #ifndef MATH2D_BEZIER_H_
 #define MATH2D_BEZIER_H_
 
+#include "math2d-config.h"
 #include <assert.h>
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
-#include <math2d_config.h>
 
-#include <math2d/line.h>
-#include <math2d/polynom.h>
+#include "math2d/line.h"
+#include "math2d/polynom.h"
 #include "float-utils.h"
 
 namespace math2d {
@@ -100,10 +100,7 @@ int bezier_bezier_intersections_t(
 //          I M P L E M E N T A T I O N S     B E L O W
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BEZIER_BEZIER_EVALUATE
-#	define BEZIER_BEZIER_EVALUATE 0
-#endif
-#if  BEZIER_BEZIER_EVALUATE
+#ifdef MATH2D_EVALUATE
 	extern int BEZIER_BEZIER_iterations;
 #	define BEZIER_BEZIER_COUNT()             (BEZIER_BEZIER_iterations++)
 #	define BEZIER_BEZIER_EVALUATION_RESET()  (BEZIER_BEZIER_iterations = 0)

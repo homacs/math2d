@@ -15,9 +15,9 @@
 
 #include <glm/gtx/vector_angle.hpp>
 
-#include <math2d/bezier.h>
-#include <math2d/line.h>
-#include <math2d/polynom.h>
+#include "math2d/bezier.h"
+#include "math2d/line.h"
+#include "math2d/polynom.h"
 
 using namespace glm;
 using namespace std;

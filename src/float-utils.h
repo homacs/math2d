@@ -11,7 +11,7 @@
 #include <ieee754.h>
 #include <stdint.h>
 #include <math.h>
-#include <math2d_config.h>
+#include <math2d-config.h>
 
 
 

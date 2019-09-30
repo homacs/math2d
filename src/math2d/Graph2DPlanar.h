@@ -8,7 +8,7 @@
 #ifndef MATH2D_GRAPH2DPLANAR_H_
 #define MATH2D_GRAPH2DPLANAR_H_
 
-
+#include "math2d-config.h"
 #include <iostream>
 
 #include <string>
@@ -31,7 +31,7 @@ using namespace std;
 
 
 #include <math2d/line.h>
-#include <math2d_config.h>
+#include <math2d-config.h>
 
 
 

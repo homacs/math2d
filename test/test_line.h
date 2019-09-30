@@ -9,13 +9,18 @@
 
 #define TEST_MATH_LINE_H_
 
-#include <float-utils.h>
-#include <math2d/line.h>
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <glm/gtx/vector_angle.hpp>
 using namespace glm;
+
+
+#include "math2d/line.h"
 using namespace math2d;
+
 #include "perf_clock.h"
 
 
