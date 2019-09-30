@@ -14,8 +14,8 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <math.h>
 #include <ieee754.h>
-#include <math2d/general.h>
 #include <math2d/math2d.h>
+#include <math2d/utils.h>
 
 #include "float-utils.h"
 

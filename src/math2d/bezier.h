@@ -12,7 +12,6 @@
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
 #include <math2d_config.h>
-using namespace glm;
 
 #include <math2d/line.h>
 #include <math2d/polynom.h>
@@ -24,64 +23,196 @@ namespace math2d {
 static const double_mantissa_mask_t BEZIER_DOUBLE_PRECISION = double_mantissa_mask(16);
 static const float_mantissa_mask_t BEZIER_FLOAT_PRECISION = float_mantissa_mask(8);
 
-static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2& p) {
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2& p);
+
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2& p);
+
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p);
+
+static inline void bezier_point_highp(double f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p);
+
+
+/**
+ * Determines the parameters of a line L(s)=m*s + p, which is a tangent of the bezier curve P(f) at P(f_t).
+ *
+ * p = P(f_t)
+ * m = P'(f_t)
+ */
+static inline void bezier_tangent(float f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m);
+
+bool bezier_inflection_point(const glm::vec2 p0, const glm::vec2 p1, const glm::vec2 p2, const glm::vec2 p3, float& t);
+
+
+bool bezier_extrema(glm::vec2 const& p0, glm::vec2 const& p1, glm::vec2 const& p2, glm::vec2 const& p3, glm::dvec2& t_min, glm::dvec2& t_max);
+
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T>
+static inline double bezier_point_closest_point_t (
+		const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
+		const glm::vec2& v, float tolerance, glm::vec2& result_v,
+		const CO_DOMAIN_T domain = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE);
+/**
+ * Intersections between bezier curve and a line segment from m to n.
+ * L(s) = m + (n-m)* s
+ */
+int bezier_line_segment_intersections(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& m, const glm::vec2& n, float tolerance, glm::vec2 results[3]);
+
+/**
+ * This is a function used by bezier_line_segment_intersections.
+ * This function returns the interpolation factors for B(t) and L(s).
+ *
+ * Given bezier curve  B(t, p0, p1, p2, p3) and line segment L(s, m, n) = m + (n-m) s
+ * calculate all t_i and corresponding s_i which satisfy
+ *     B(t_i) - L(s_i) == 0
+ *     and   0 <  t_i <  1  // TODO: why is that not less equal?!
+ *     and   0 <= s_i <= 1
+ *
+ */
+template
+<
+	class CO_DOMAIN_T = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T,
+	class CO_DOMAIN_S = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T
+>
+int bezier_line_segment_intersections_t(
+		const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
+		const glm::vec2& m, const glm::vec2& n,
+		float tolerance, //<< @deprecated TODO: remove
+		double t[3], // interpolation factor for bezier curve
+		double s[3], // interpolation factor for line segment
+		CO_DOMAIN_T interval_t = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE,
+		CO_DOMAIN_S interval_s = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE);
+
+/**
+ * Computes all intersections of two bezier curves using
+ * the recursive subdivision method.
+ * Parameter 'tolerance' controls the maximum deviation of accepted
+ * results (intersection points) of the true intersection
+ * point. Thus, lower tolerance effectively means higher
+ * processing effort.
+ */
+int bezier_bezier_intersections_t(
+		const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
+		const glm::vec2& q0, const glm::vec2& q1, const glm::vec2& q2, const glm::vec2& q3,
+		float tolerance, double t_p[9], double t_q[9]);
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//          I M P L E M E N T A T I O N S     B E L O W
+////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef BEZIER_BEZIER_EVALUATE
+#	define BEZIER_BEZIER_EVALUATE 0
+#endif
+#if  BEZIER_BEZIER_EVALUATE
+	extern int BEZIER_BEZIER_iterations;
+#	define BEZIER_BEZIER_COUNT()             (BEZIER_BEZIER_iterations++)
+#	define BEZIER_BEZIER_EVALUATION_RESET()  (BEZIER_BEZIER_iterations = 0)
+#	define BEZIER_BEZIER_EVALUATION_REPORT() printf("bezier_bezier_intersections iterations: %d\n", BEZIER_BEZIER_iterations)
+
+#else
+#	define BEZIER_BEZIER_COUNT()
+#	define BEZIER_BEZIER_EVALUATION_RESET()
+#	define BEZIER_BEZIER_EVALUATION_REPORT()
+#endif
+
+
+/**
+ * Intersections between bezier curve and a line segment from m to n.
+ * L(s) = m + (n-m)* s
+ */
+int bezier_line_segment_intersections_iterative(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& m, const glm::vec2& n, float tolerance, glm::vec2 results[3]);
+
+
+
+
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2& p) {
 	assert(0 <= f && f <= 1.0);
 	p = mix(p0, p1, f);
 }
 
-static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2& p) {
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2& p) {
 	assert(0 <= f && f <= 1.0);
 
-	vec2 P0 = mix(p0, p1, f);
-	vec2 P1 = mix(p1, p2, f);
+	glm::vec2 P0 = mix(p0, p1, f);
+	glm::vec2 P1 = mix(p1, p2, f);
 
 	p = mix(P0, P1, f);
 }
 
 
-static inline void bezier_point_highp(double f, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2 const & p3, vec2& p) {
+static inline void bezier_point_highp(double f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p) {
 	assert(0 <= f && f <= 1.0);
 
-	dvec2 dp0 = p0;
-	dvec2 dp1 = p1;
-	dvec2 dp2 = p2;
-	dvec2 dp3 = p3;
+	glm::dvec2 dp0 = p0;
+	glm::dvec2 dp1 = p1;
+	glm::dvec2 dp2 = p2;
+	glm::dvec2 dp3 = p3;
 
-	dvec2 P1 = mix(dp0, dp1, f);
-	dvec2 P2 = mix(dp1, dp2, f);
-	dvec2 P3 = mix(dp2, dp3, f);
+	glm::dvec2 P1 = mix(dp0, dp1, f);
+	glm::dvec2 P2 = mix(dp1, dp2, f);
+	glm::dvec2 P3 = mix(dp2, dp3, f);
 
-	dvec2 P4 = mix(P1, P2, f);
-	dvec2 P5 = mix(P2, P3, f);
+	glm::dvec2 P4 = mix(P1, P2, f);
+	glm::dvec2 P5 = mix(P2, P3, f);
 
 	p = mix(P4, P5, f);
 }
 
 
-static inline void bezier_point(float f, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2 const & p3, vec2& p) {
+static inline void bezier_point(float f, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p) {
 	assert(0 <= f && f <= 1.0);
 
-	vec2 P1 = mix(p0, p1, f);
-	vec2 P2 = mix(p1, p2, f);
-	vec2 P3 = mix(p2, p3, f);
+	glm::vec2 P1 = mix(p0, p1, f);
+	glm::vec2 P2 = mix(p1, p2, f);
+	glm::vec2 P3 = mix(p2, p3, f);
 
-	vec2 P4 = mix(P1, P2, f);
-	vec2 P5 = mix(P2, P3, f);
+	glm::vec2 P4 = mix(P1, P2, f);
+	glm::vec2 P5 = mix(P2, P3, f);
 
 	p = mix(P4, P5, f);
 }
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T>
-static inline double bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, vec2& result_v, const CO_DOMAIN_T domain = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE) {
+static inline double bezier_point_closest_point_t (const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& v, float tolerance, glm::vec2& result_v, const CO_DOMAIN_T domain) {
+	double result_t;
+	double result_distance;
+	glm::vec2 tmp;
 
-	double result_t = INFINITY;
+	//
+	// Initialise results by evaluating distance to the
+	// edges of the domain. Closer edge wins.
+	//
 
-	vec2 a = p3 - 3.f*p2 + 3.f*p1 - p0;
-	vec2 b = 3.f * (p2 - 2.f*p1 + p0);
-	vec2 c = 3.f * (p1 - p0);
+	result_t = domain.re_min;
+	bezier_point(result_t, p0,p1,p2,p3, result_v);
+	result_distance = length(v - result_v);
 
-	vec2 p0_v = p0-v;
+	bezier_point(domain.re_max, p0,p1,p2,p3, tmp);
+	double distance = length(v - tmp);
+	if (distance < result_distance) {
+		result_t = domain.re_max;
+		result_v = tmp;
+		result_distance = distance;
+	}
+
+	//
+	// Now calculate all closest points to v in the given
+	// domain.
+	//
+
+
+	// A point p on B(t) closest to v defines line L(s)=p+s(v-p)
+	// with an angle a(t) of 90° to the tangent in p.
+	// Thus, to find p, we can solve
+	//     a(t) = B'(t) * (B(t)-v) with a(t) = 0
+	// This is what happens below.
+
+	glm::vec2 a = p3 - 3.f*p2 + 3.f*p1 - p0;
+	glm::vec2 b = 3.f * (p2 - 2.f*p1 + p0);
+	glm::vec2 c = 3.f * (p1 - p0);
+
+	glm::vec2 p0_v = p0-v;
 
 	double param[6];
 
@@ -95,7 +226,8 @@ static inline double bezier_point_closest_point_t (const vec2& p0, const vec2& p
 	polynom_t<5> W(param);
 
 
-	// FIXME: calculate derived tolerance
+	// FIXME: calculate better tolerance and find method to improve if not met
+	//
 	// tolerance of W.roots() is expressed in respect to variable t
 	// but we are looking for the tolerance in values of B(t).
 	// Thus, tolerance range for t has to be scaled down by the
@@ -107,14 +239,9 @@ static inline double bezier_point_closest_point_t (const vec2& p0, const vec2& p
 	float len = length(p1-p0)+length(p2-p1)+length(p3-p2);
 	float t_tolerance = tolerance/len;
 
+
 	double t_i[5];
-	// we do not restrict the interval of valid roots here,
-	// to find roots outside the 0:1 range.
-	// Tis way, we will also consider the edges, if we
-	// have found roots outside the range.
-	int count = W.roots(t_i, t_tolerance);
-	vec2 tmp;
-	double result_distance = INFINITY;
+	int count = W.roots(t_i, t_tolerance, domain);
 	for (int i = 0; i < count; i++) {
 		double t = t_i[i];
 		t = domain.clip(t);
@@ -136,7 +263,7 @@ static inline double bezier_point_closest_point_t (const vec2& p0, const vec2& p
  * p = P(f_t)
  * m = P'(f_t)
  */
-static inline void bezier_tangent(float f_t, vec2 const & p0, vec2 const & p1, vec2 const & p2, vec2 const & p3, vec2& p, vec2& m) {
+static inline void bezier_tangent(float f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m) {
 	// p = P(f_t)
 	bezier_point(f_t, p0, p1, p2, p3, p);
 
@@ -147,40 +274,40 @@ static inline void bezier_tangent(float f_t, vec2 const & p0, vec2 const & p1, v
 
 
 
-static inline void bezier_split_highp(double f, vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2& q0, vec2& q1, vec2& q2, vec2& q3) {
+static inline void bezier_split_highp(double f, glm::vec2& p0, glm::vec2& p1, glm::vec2& p2, glm::vec2& p3, glm::vec2& q0, glm::vec2& q1, glm::vec2& q2, glm::vec2& q3) {
 	// using q3 as temporary variable
 	assert(0 <= f && f <= 1.0);
 
-	dvec2 dp0 = p0;
-	dvec2 dp1 = p1;
-	dvec2 dp2 = p2;
-	dvec2 dp3 = p3;
+	glm::dvec2 dp0 = p0;
+	glm::dvec2 dp1 = p1;
+	glm::dvec2 dp2 = p2;
+	glm::dvec2 dp3 = p3;
 
 	double g = 1.0-f;
 
-	dvec2 P1a = mix(dp0, dp1, f);
-	dvec2 P1b = mix(dp1, dp0, g);
-	dvec2 P1 = mix(P1a, P1b, 0.5);
+	glm::dvec2 P1a = mix(dp0, dp1, f);
+	glm::dvec2 P1b = mix(dp1, dp0, g);
+	glm::dvec2 P1 = mix(P1a, P1b, 0.5);
 
-	dvec2 P2a = mix(dp1, dp2, f);
-	dvec2 P2b = mix(dp2, dp1, g);
-	dvec2 P2 = mix(P2a, P2b, 0.5);
+	glm::dvec2 P2a = mix(dp1, dp2, f);
+	glm::dvec2 P2b = mix(dp2, dp1, g);
+	glm::dvec2 P2 = mix(P2a, P2b, 0.5);
 
-	dvec2 P3a = mix(dp2, dp3, f);
-	dvec2 P3b = mix(dp3, dp2, g);
-	dvec2 P3 = mix(P3a, P3b, 0.5);
+	glm::dvec2 P3a = mix(dp2, dp3, f);
+	glm::dvec2 P3b = mix(dp3, dp2, g);
+	glm::dvec2 P3 = mix(P3a, P3b, 0.5);
 
-	dvec2 P4a = mix(P1, P2, f);
-	dvec2 P4b = mix(P2, P1, g);
-	dvec2 P4  = mix(P4a, P4b, 0.5);
+	glm::dvec2 P4a = mix(P1, P2, f);
+	glm::dvec2 P4b = mix(P2, P1, g);
+	glm::dvec2 P4  = mix(P4a, P4b, 0.5);
 
-	dvec2 P5a = mix(P2, P3, f);
-	dvec2 P5b = mix(P3, P2, g);
-	dvec2 P5 = mix(P5a, P5b, 0.5);
+	glm::dvec2 P5a = mix(P2, P3, f);
+	glm::dvec2 P5b = mix(P3, P2, g);
+	glm::dvec2 P5 = mix(P5a, P5b, 0.5);
 
-	dvec2 P6a = mix(P4, P5, f); // P6 -> splitting point
-	dvec2 P6b = mix(P5, P4, g); // P6 -> splitting point
-	dvec2 P6 = mix(P6a, P6b, 0.5); // P6 -> splitting point
+	glm::dvec2 P6a = mix(P4, P5, f); // P6 -> splitting point
+	glm::dvec2 P6b = mix(P5, P4, g); // P6 -> splitting point
+	glm::dvec2 P6 = mix(P6a, P6b, 0.5); // P6 -> splitting point
 
 	q0 = P6;
 	q1 = P5;
@@ -197,9 +324,9 @@ static inline void bezier_split_highp(double f, vec2& p0, vec2& p1, vec2& p2, ve
 
 
 
-static inline void bezier_split(float f, vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2& q0, vec2& q1, vec2& q2, vec2& q3) {
+static inline void bezier_split(float f, glm::vec2& p0, glm::vec2& p1, glm::vec2& p2, glm::vec2& p3, glm::vec2& q0, glm::vec2& q1, glm::vec2& q2, glm::vec2& q3) {
 	// using q3 as temporary variable
-	vec2& px = q3;
+	glm::vec2& px = q3;
 	
 	px = p1;
 	p1 = mix(p0, px, f); // P1 = mix(p0, p1, f);
@@ -232,7 +359,7 @@ static inline void bezier_split(float f, vec2& p0, vec2& p1, vec2& p2, vec2& p3,
  *
  * @param tolerance Absolute tolerance of control point deviation (e.g. 0.5 if control points are ivec2 actually)
  */
-static inline bool bezier_merge_highp(vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2 q0, vec2 q1, vec2 q2, vec2 q3, float tolerance) {
+static inline bool bezier_merge_highp(glm::vec2& p0, glm::vec2& p1, glm::vec2& p2, glm::vec2& p3, glm::vec2 q0, glm::vec2 q1, glm::vec2 q2, glm::vec2 q3, float tolerance) {
 	assert(tolerance >= 0);
 	if (p3 != q0) {
 		return false;
@@ -251,14 +378,14 @@ static inline bool bezier_merge_highp(vec2& p0, vec2& p1, vec2& p2, vec2& p3, ve
 	 * All these tests are quite stable against precision errors.
 	 */
 
-	dvec2 dp0 = p0;
-	dvec2 dq3 = q3;
-	dvec2 P6 = p3; // == q0
-	dvec2 P5 = q1;
-	dvec2 P4 = p2;
-	dvec2 P3 = q2;
-	dvec2 P2; // = ?
-	dvec2 P1 = p1;
+	glm::dvec2 dp0 = p0;
+	glm::dvec2 dq3 = q3;
+	glm::dvec2 P6 = p3; // == q0
+	glm::dvec2 P5 = q1;
+	glm::dvec2 P4 = p2;
+	glm::dvec2 P3 = q2;
+	glm::dvec2 P2; // = ?
+	glm::dvec2 P1 = p1;
 
 	double f;
 	bool canMerge = line_contains_point_highp(P4,P5,P6,f, tolerance);
@@ -277,20 +404,20 @@ static inline bool bezier_merge_highp(vec2& p0, vec2& p1, vec2& p2, vec2& p3, ve
 		 */
 		if (f > 0.5) {
 			f = 1.0/f;              // forward interpolation factor
-			dvec2 P2  = mix(P1,P4,f);
-			dvec2 dp1 = mix(dp0, P1, f); // p0 + (P1-p0) * f;
-			dvec2 dp2 = mix(dp1, P2, f); //
-			dvec2 dp3 = mix(dp2, P3, f);
+			glm::dvec2 P2  = mix(P1,P4,f);
+			glm::dvec2 dp1 = mix(dp0, P1, f); // p0 + (P1-p0) * f;
+			glm::dvec2 dp2 = mix(dp1, P2, f); //
+			glm::dvec2 dp3 = mix(dp2, P3, f);
 			canMerge = about_equal(dp3,dq3, tolerance);
 			p1 = dp1;
 			p2 = dp2;
 			p3 = q3;
 		} else {
 			f = 1.0/(1.0-f);        // reverse interpolation factor
-			dvec2 P2  = mix(P3,P5,f);
-			dvec2 dq2 = mix(dq3,P3,f); // p0 + (P1-p0) * f;
-			dvec2 dq1 = mix(dq2,P2,f); //
-			dvec2 dq0 = mix(dq1,P1,f);
+			glm::dvec2 P2  = mix(P3,P5,f);
+			glm::dvec2 dq2 = mix(dq3,P3,f); // p0 + (P1-p0) * f;
+			glm::dvec2 dq1 = mix(dq2,P2,f); //
+			glm::dvec2 dq0 = mix(dq1,P1,f);
 			canMerge = about_equal(dq0,dp0, tolerance);
 			p1 = dq1;
 			p2 = dq2;
@@ -300,22 +427,22 @@ static inline bool bezier_merge_highp(vec2& p0, vec2& p1, vec2& p2, vec2& p3, ve
 	return canMerge;
 }
 
-static inline bool bezier_merge(vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2 q0, vec2 q1, vec2 q2, vec2 q3) {
+static inline bool bezier_merge(glm::vec2& p0, glm::vec2& p1, glm::vec2& p2, glm::vec2& p3, glm::vec2 q0, glm::vec2 q1, glm::vec2 q2, glm::vec2 q3) {
 	if (p3 != q0) return false;
 
 	double f;
-	vec2 P6 = p3; // == q0
-	vec2 P5 = q1;
-	vec2 P4 = p2;
-	vec2 P3 = q2;
-	vec2 P2; // = ?
-	vec2 P1 = p1;
+	glm::vec2 P6 = p3; // == q0
+	glm::vec2 P5 = q1;
+	glm::vec2 P4 = p2;
+	glm::vec2 P3 = q2;
+	glm::vec2 P2; // = ?
+	glm::vec2 P1 = p1;
 	bool canMerge = line_contains_point_highp(P4,P5,P6,f, 0.001);
 	double g = 1.0/(1.0-f); // reverse direction factor
 	f = 1.0/f;              // forward direction factor
 	if (canMerge) {
-		vec2 P2a = mix(P1, P4, f);
-		vec2 P2b = mix(P3, P5, g);
+		glm::vec2 P2a = mix(P1, P4, f);
+		glm::vec2 P2b = mix(P3, P5, g);
 		canMerge = about_equal(P2a, P2b, BEZIER_FLOAT_PRECISION);
 		if (canMerge) {
 			P2 = mix(P2a,P2b,0.5);
@@ -327,34 +454,6 @@ static inline bool bezier_merge(vec2& p0, vec2& p1, vec2& p2, vec2& p3, vec2 q0,
 	return canMerge;
 }
 
-/**
- * Find point on bezier curve closets to given point v.
- */
-int bezier_point_closest_point_t (const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& v, float tolerance, double& t_v);
-
-/**
- * Intersections between bezier curve and a line segment from m to n.
- * L(s) = m + (n-m)* s
- */
-int bezier_line_segment_intersections_iterative(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 results[3]);
-/**
- * Intersections between bezier curve and a line segment from m to n.
- * L(s) = m + (n-m)* s
- */
-int bezier_line_segment_intersections(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& m, const vec2& n, float tolerance, vec2 results[3]);
-
-bool bezier_inflection_point(const vec2 p0, const vec2 p1, const vec2 p2, const vec2 p3, float& t);
-bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& p3, dvec2& t_min, dvec2& t_max);
-
-/**
- * Computes all intersections of two bezier curves using
- * the recursive subdivision method.
- * Parameter 'tolerance' controls the maximum deviation of accepted
- * results (intersection points) of the true intersection
- * point. Thus, lower tolerance effectively means higher
- * processing effort.
- */
-int bezier_bezier_intersections_t(const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3, const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, float tolerance, double t_p[9], double t_q[9]);
 
 }
 

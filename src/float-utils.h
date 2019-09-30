@@ -366,27 +366,6 @@ static inline float half(float a) {
 	return float_mantissa_trunc(a,STD_HALF_PRECISION);
 }
 
-static inline bool about_equal(double a, double b, double const & tolerance) {
-	assert(tolerance >= 0.0);
-	double dist = fabs(a-b);
-	return dist <= tolerance;
-}
-
-static inline bool about_equal(float a, float b, float const & tolerance) {
-	assert(tolerance >= 0.0);
-	float dist = fabs(a-b);
-	return dist <= tolerance;
-}
-
-
-static inline bool about_equal(double a, double b, double_mantissa_mask_t const & precision) {
-	return double_mantissa_round(a, precision) == double_mantissa_round(b, precision);
-}
-
-static inline bool about_equal(float a, float b, float_mantissa_mask_t const & precision) {
-	return float_mantissa_round(a, precision) == float_mantissa_round(b, precision);
-}
-
 
 
 #endif /* MATH_FLOAT_UTILS_H_ */

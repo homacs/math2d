@@ -12,7 +12,14 @@
 #include <assert.h>
 
 
+
 #include <math2d/bezier.h>
+
+
+#define EVALUATIONS_RESET() BEZIER_BEZIER_EVALUATION_RESET(); POLYNOM_N_ROOTS_EVALUATION_RESET()
+#define EVALUATIONS_REPORT() BEZIER_BEZIER_EVALUATION_REPORT(); POLYNOM_N_ROOTS_EVALUATION_REPORT()
+
+
 
 
 static inline void testsub_bezier_split_merge(double f, vec2 const & v0, vec2 const & v1, vec2 const & v2, vec2 const & v3) {
@@ -146,17 +153,23 @@ static inline void test_bezier_point_closest_point() {
 	float tolerance = 0.000001;
 	vec2 result_v;
 	float t;
+	POLYNOM_N_ROOTS_EVALUATION_RESET();
 	// with inflection point
 	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(0,7), tolerance, result_v);
 	assert(about_equal((float)t, 0.f, tolerance));
+	POLYNOM_N_ROOTS_EVALUATION_REPORT();
 
+	POLYNOM_N_ROOTS_EVALUATION_RESET();
 	// with inflection point
 	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(3.0,1.5), tolerance, result_v);
 	assert(about_equal((float)t, 1.f, tolerance));
+	POLYNOM_N_ROOTS_EVALUATION_REPORT();
 
+	POLYNOM_N_ROOTS_EVALUATION_RESET();
 	// with inflection point
 	t = bezier_point_closest_point_t(vec2(0,7), vec2(5.5,6.5), vec2(-2,1.5), vec2(3.0,1.5), vec2(1.0,4.5), tolerance, result_v);
 	assert(about_equal((float)t, 0.484173596f, tolerance));
+	POLYNOM_N_ROOTS_EVALUATION_REPORT();
 
 }
 
@@ -320,6 +333,7 @@ static inline void test_bezier_bezier_intersections() {
 	double t_q[9];
 	int count;
 
+	EVALUATIONS_RESET();
 	// no turning point, same bezier mirrored
 	// two intersections
 	count = bezier_bezier_intersections_t(
@@ -327,8 +341,10 @@ static inline void test_bezier_bezier_intersections() {
 			vec2(1,3), vec2(1,0), vec2(3,0), vec2(3,3),
 			tolerance, t_p, t_q);
 	assert(count == 2);
-//	assert(about_equal(p[0].y, 1, tolerance));
-//	assert(about_equal(p[1].y, 1, tolerance));
+
+	EVALUATIONS_REPORT();
+
+
 
 }
 

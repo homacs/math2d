@@ -9,8 +9,12 @@
 #define MATH2D_POLYNOM_H_
 
 #include <stdexcept>
-#include <math2d/general.h>
 #include <string.h>
+#include <algorithm>
+#include <assert.h>
+#include <math2d/utils.h>
+
+#include "math2d/math2d.h"
 
 namespace math2d {
 
@@ -26,7 +30,7 @@ static inline int polynom1_roots(double a, double b, double t[1], CO_DOMAIN_T do
 static inline double polynom2_value(double a, double b, double c, double t);
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom2_roots(double a, double b, double c, double roots[2], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 /**
  *
@@ -89,38 +93,113 @@ static inline int polynom3_extrema(double a, double b, double c, bool accept_sad
  *
  */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int polynom3_roots(double a, double b, double c, double d, double roots[3], CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
-
-static inline void polynom_N_derivative(const double F[0], double f[0], int N);
+/**
+ * Determine 1. derivative of F and store it in f .
+ */
+static inline void polynom_N_derivative(const double F[0], int N, /* out */ double f[0]);
 
 static inline double polynom_N_value(const double f[0], int n, double t);
 
 /**
- * Find one root close to 'guess' using the Newton-Raphson method.
- * Either returns t of a root or +-INFINITY or NAN to indicate, that
- * there is no root to be found. Use ::finite(t) to check whether it's
- * a valid result.
+ * Find up to N roots in a polynom F of degree N.
+ *
+ * This is the API level entry function to all root finding
+ * functions, which tests inputs and then delegates to lower
+ * level functions to solve the actual task.
  */
-static inline double polynom_N_root(const double F[0], const double f[0], int n, double guess, float tolerance);
+template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
+static inline int polynom_N_roots(const double F[N], double roots[N], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom_N_roots(const double F[0], const double f[0], int n, double guesses[0], int num_guesses, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
-
+/**
+ * Find up to N roots in a polynom F of degree n,
+ * having the first derivative function f of F.
+ *
+ * Preconditions:
+ * 		F[0] != 0
+ *
+ * This is the main control function for root finding.
+ * This function analysis the shape of F to make good
+ * guesses before delegating to another function to
+ * find a root for each guess.
+ */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], double f[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
-template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom_N_roots(const double F[N], double roots[N], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+
+/**
+ * This function finds roots based on given guesses.
+ *
+ * Precondition:
+ * 		F[0] != 0
+ *
+ */
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
+static inline int polynom_N_roots(const double F[0], const double f[0], int n, double guesses[0], int num_guesses, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+
+
+/**
+ * Find at most one root, based on the given guess
+ * inside a given interval. Roots on interval borders
+ * will be ignored.
+ *
+ *
+ * Runtime of the function depends on guess and the
+ * interval. Two tips are important in this regard:
+ *
+ * - You should check first, if your interval actually
+ *   contains a root (boundary checks).
+ *
+ * - Use extrema for intervals, because there is at most
+ *   one root between two extrema.
+ *
+ *
+ * It is recommended to choose intervals between
+ * extrema or one extreme and +/- DBL_MAX. If this
+ * condition is met, then this function will always
+ * converge on at most one root and never abort to
+ * avoid an infinite loop.
+ *
+ * The function will return NAN in two cases:
+ * (1) There is no root to be found in the given interval.
+ * (2) The function did not converge and would have ended
+ *     up in an infinite loop. Avoid this by using proper
+ *     intervals (see above).
+ *
+ * @param F function to be searched (polynom of degree n)
+ * @param f derivative of F
+ * @param n degree of F
+ * @param guess guess for t_0 of a possible location of a root for F(t_0) = 0
+ * @param tolerance deviation tolerance for found root.
+ * @param domain valid interval to be search for the root
+ */
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
+static inline double polynom_N_root(const double F[0], const double f[0], int n, double guess, float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 ////////////////////////////////////////////////////////////////////////////////////
 //          I M P L E M E N T A T I O N S     B E L O W
 ////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef POLYNOM_N_ROOTS_EVALUATE
+#	define POLYNOM_N_ROOTS_EVALUATE 0
+#endif
+#if  POLYNOM_N_ROOTS_EVALUATE
+	extern int POLYNOM_N_ROOTS_iterations;
+#	define POLYNOM_N_ROOTS_COUNT()             (POLYNOM_N_ROOTS_iterations++)
+#	define POLYNOM_N_ROOTS_EVALUATION_RESET()  (POLYNOM_N_ROOTS_iterations = 0)
+#	define POLYNOM_N_ROOTS_EVALUATION_REPORT() printf("polynom_N_root iterations: %d\n", POLYNOM_N_ROOTS_iterations)
+#else
+#	define POLYNOM_N_ROOTS_COUNT()
+#	define POLYNOM_N_ROOTS_EVALUATION_RESET()
+#	define POLYNOM_N_ROOTS_EVALUATION_REPORT()
+#endif
+
+
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int __internal__polynom_N_roots(const double W[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
+static inline int __internal__polynom_N_roots(const double F[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain = CO_DOMAIN_REAL);
 
 
 /**
@@ -167,7 +246,7 @@ struct polynom_t {
 	}
 
 	void derivative(polynom_t<N-1>& f) const {
-		polynom_N_derivative(p, f.p, N);
+		polynom_N_derivative(p, N, f.p);
 	}
 
 };
@@ -199,11 +278,11 @@ static inline double polynom2_value(double a, double b, double c, double t) {
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom2_roots(double a, double b, double c, double t[2], CO_DOMAIN_T domain) {
+static inline int polynom2_roots(double a, double b, double c, double roots[2], CO_DOMAIN_T domain) {
 	int count = 0;
 
 	if (a == 0) {
-		count = polynom1_roots(b, c, t, domain);
+		count = polynom1_roots(b, c, roots, domain);
 	} else {
 
 		// 0 = at^2 + bt + c
@@ -216,14 +295,15 @@ static inline int polynom2_roots(double a, double b, double c, double t[2], CO_D
 		if (inner >= 0) {
 			double sqrt_inner = sqrt(inner);
 			t_i = -b_a_2 + sqrt_inner;
-			if (domain(t_i)) t[count++] = t_i;
+			if (domain(t_i)) roots[count++] = t_i;
 			// prevent double root
 			if (sqrt_inner)	{
 				t_i = -b_a_2 - sqrt_inner;
-				if (domain(t_i)) t[count++] = t_i;
+				if (domain(t_i)) roots[count++] = t_i;
 			}
 		}
 	}
+	std::sort(roots, roots + count);
 	return count;
 }
 
@@ -270,13 +350,13 @@ static inline double polynom3_value(double a, double b, double c, double d, doub
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom3_roots(double a, double b, double c, double d, double t[3], CO_DOMAIN_T domain)
+static inline int polynom3_roots(double a, double b, double c, double d, double roots[3], CO_DOMAIN_T domain)
 {
 	static const double PI =  math2d::CONSTANT_PI;
 	int count = 0;
 
 	if (a == 0) {
-		return polynom2_roots(b,c,d, t, domain);
+		return polynom2_roots(b,c,d, roots, domain);
 	} else {
 		// a != 0
 		double A=b/a;
@@ -301,7 +381,7 @@ static inline int polynom3_roots(double a, double b, double c, double d, double 
 			double v = ::cbrt(neg_q_2 - sqrt_D);
 
 			t_i = u + v - A_3;
-			if (domain(t_i)) t[count++] = t_i;
+			if (domain(t_i)) roots[count++] = t_i;
 			/* 2 complex roots
 				t_i = -(u+v)/2.0 - A_3 + Imaginary((u-v)/2.0 * sqrt(3.0));
 				t_i = -(u+v)/2.0 - A_3 - Imaginary((u-v)/2.0 * sqrt(3.0));
@@ -309,29 +389,31 @@ static inline int polynom3_roots(double a, double b, double c, double d, double 
 		} else if (D == 0) {
 			if (p == 0) {
 				t_i = -A_3;  // triple
-				if (domain(t_i)) t[count++] = t_i;
+				if (domain(t_i)) roots[count++] = t_i;
 			} else {
 				double q_3_p = 3.0*q/p;
 				t_i =   q_3_p       - A_3;
-				if (domain(t_i)) t[count++] = t_i;
+				if (domain(t_i)) roots[count++] = t_i;
 
 				t_i = - q_3_p/(2.0) - A_3; // double
-				if (domain(t_i)) t[count++] = t_i;
+				if (domain(t_i)) roots[count++] = t_i;
 			}
 		} else /* (D < 0) */ {
 			double sqrt_4_3_p = ::sqrt(-4.0/3.0*p);
 			double onethird_arccos = 1.0/3.0 * ::acos(-q/2.0 * sqrt(-27.0/(p*p*p)));
 			double PI_3 = PI/3.0;
 			t_i = - sqrt_4_3_p * ::cos(onethird_arccos + PI_3) - A_3;
-			if (domain(t_i)) t[count++] = t_i;
+			if (domain(t_i)) roots[count++] = t_i;
 
 			t_i =   sqrt_4_3_p * ::cos(onethird_arccos       ) - A_3;
-			if (domain(t_i)) t[count++] = t_i;
+			if (domain(t_i)) roots[count++] = t_i;
 
 			t_i = - sqrt_4_3_p * ::cos(onethird_arccos - PI_3) - A_3;
-			if (domain(t_i)) t[count++] = t_i;
+			if (domain(t_i)) roots[count++] = t_i;
 		}
 	}
+
+	std::sort(roots, roots + count);
 
     return count;
 }
@@ -382,7 +464,7 @@ static inline int polynom3_extrema(double a, double b, double c, bool accept_sad
 
 
 
-static inline void polynom_N_derivative(const double F[0], double f[0], int N) {
+static inline void polynom_N_derivative(const double F[0], int N, double f[0]) {
 	for (int i = 0; i < N; i++) {
 		f[i] = (N-i) * F[i];
 	}
@@ -391,7 +473,7 @@ static inline void polynom_N_derivative(const double F[0], double f[0], int N) {
 
 
 static inline double polynom_N_value(const double f[0], int n, double t) {
-	double result = f[0];
+	long double result = f[0];
 	for (int i = 1; i < n+1; i++) {
 		result *= t;
 		result += f[i];
@@ -399,114 +481,215 @@ static inline double polynom_N_value(const double f[0], int n, double t) {
 	return result;
 }
 
-static inline double polynom_N_root(const double F[0], const double f[0], int n, double guess, float tolerance) {
-	double t = guess;
-	do {
-		guess = t;
-		t = guess - polynom_N_value(F, n, guess) / polynom_N_value(f, n-1, guess);
-	} while (::fabs(guess-t) > tolerance);
-	return t;
-}
-
-
-template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int polynom_N_roots(const double F[0], const double f[0], int n, double guesses[0], int num_guesses, double roots[0], float tolerance, CO_DOMAIN_T domain) {
-	int count = 0;
-	double t;
-	double min = +INFINITY;
-	double max = -INFINITY;
-	for (int i = 0; i < num_guesses; i++) {
-		t = polynom_N_root(F, f, n, guesses[i], tolerance);
-		if (domain(t)) {
-			roots[count++] = t;
-			if (t < min) min = t;
-			if (t > max) max = t;
-		}
-	}
-
-
-	if (num_guesses > 1) {
-		// the shape suggests, that there may be other roots at interval edges
-
-		// check lower boundary
-		t = polynom_N_root(F, f, n, domain.re_min, tolerance);
-		if (domain(t)) {
-			roots[count++] = t;
-		} else {
-			// re_min was a very bad guess
-			t = min - (max-min);
-			t = polynom_N_root(F, f, n, t, tolerance);
-			if (domain(t)) roots[count++] = t;
-
-		}
-
-		// check upper boundary
-		t = polynom_N_root(F, f, n, domain.re_max, tolerance);
-		if (domain(t)) {
-			roots[count++] = t;
-		} else {
-			// re_max was a very bad guess
-			t = max + (max-min);
-			t = polynom_N_root(F, f, n, t, tolerance);
-			if (domain(t)) roots[count++] = t;
-		}
-	}
-	return count;
-}
-
 
 template <int N, class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[N], double roots[N], float tolerance, CO_DOMAIN_T domain) {
 	int i;
-	for (i = 0; i <= N && F[i] == 0; i++);
+	for (i = 0; unlikely(i <= N && F[i] == 0); i++);
 	int n = N-i;
 	const double* W = F + i;
 	return __internal__polynom_N_roots(W, n, roots, tolerance, domain);
 }
 
+/**
+ * WARNING: for intervals between extremas only!
+ */
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
+static inline double __internal__polynom_N_interval_contains_root(const double F[0], int n, double tolerance, CO_DOMAIN_T two_extrema_interval) {
+	double v_min = polynom_N_value(F, n, two_extrema_interval.re_min);
+	double v_max = polynom_N_value(F, n, two_extrema_interval.re_max);
+
+	// if at least one of the boundaries is a root,
+	// then there is no more root to be found.
+	if (about_equal(v_min, 0.0, tolerance) || about_equal(v_max, 0.0, tolerance)) {
+		return false;
+	}
+
+	// if both are above zero or both are below zero,
+	// then there is no more root to be found
+	if (v_min*v_max > 0) {
+		return false;
+	}
+	return true;
+}
 
 
 
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline int polynom_N_roots(const double F[0], double f[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
+	// WICHTIG: Newton-Verfahren hat Schwächen: Konvergiert gegen falsche Nullstelle oder gar nicht (Ausnahme)
+	// Konvergenz gegen falsche Nullstelle kann durch Bestimmung
+	// von Intervallen zwischen Extrema verhindert werden.
+	//
+	// Zwischen zwei Extrema befindet sich maximal eine Nullstelle!
+	// Das gilt auch für doppelte Extrema. Auf einem k-fachen Extrema befinden sich k-1 Nullstellen.
+	//
+	// Extrema müssen manuell auf Nullstellen getestet werden,
+	// weil das Newton-Verfahren in der Nähe von Extream sehr schlecht konvergiert (zu geringer Steigung).
+	// Schätzung sollte deshalb immer zwischen Extrema ansetzen.
+	//
+	// Sollte Verfahren gar nicht konvergieren, dann muss zu anderem Verfahren gewechselt werden.
+
+
+	// TODO: Kurvendiskussion zur Bestimmung der Intervalle in denen Nullstellen sein können.
+	//       1. Bestimme Extrema über Nullstellen 1. Ableitung
+	//       2. Stelle fest, ob vor dem 1. Extrema und hinter dem letzten Extrema eine Nullstelle sein kann
+	//          Wenn (F(t_e_1,2) == 0) dann nicht
+	//          Wenn (F(t_e_1) > 0 && f(t_e_1 - delta) > 0) dann beispielsweise ja. Es gibt 4 Fälle.
+	//       3. Bestimme linke und rechte Grenze für Nullstellen anhand Ergebnissen aus 2
+	//          Finde die Nullstellen der Ränder durch Wahl eines t != t_e mit einem f(t) von ca. 1.0.
+	//          Lässt sich aus den Extrema eine ungefähre Breite abschätzen, kann sie als dt verwendet
+	//          werden. Existiert nur ein einziges Extrema, dann kann stattdessen ein sehr großes dt
+	//          verwendet werden, beispielsweise dt = 10^5.
+	//       4. Aus der geordneten Reihe der Extrema ergibt sich eine Liste von Intervallen, in
+	//          denen weitere Nullstellen gesucht werden können. Der Schätzwert ist dabei
+	//          jeweils die Mitte des Intervalls.
+
+	// polynom is expected to be already normalised
+	assert(F[0] != 0);
+
 	if (n < 4 || n > 5) {
 		// FIXME: make root guesses for any degree of a function
 		throw std::range_error("cannot deal with n < 4 or n > 5");
 	}
 
-	// generate guesses using the second derivate
+
+	// create the second derivative
 	double* dfdt = (double*)alloca(sizeof(double)*(n-1));
-	polynom_N_derivative(f, dfdt, n-1);
+	polynom_N_derivative(f, n-1, dfdt);
 
-	double* guesses = (double*)alloca(sizeof(double)*(n-2));
-	int num_guesses = __internal__polynom_N_roots( dfdt, n-2, guesses, tolerance);
 
-	// calculate roots
-	return polynom_N_roots(F, f, n, guesses, num_guesses, roots, tolerance, domain);
+	int num_extrema;
+	double* extrema = (double*)alloca(sizeof(double)*(n-1));
+	if (n-1 < 4) {
+		num_extrema = __internal__polynom_N_roots(f, n-1, extrema, tolerance);
+	} else {
+		num_extrema = polynom_N_roots(f, dfdt, n-1, extrema, tolerance, domain);
+	}
+	// note: extrema are sorted because roots get sorted
+
+	// must have at least 1 extrema, because of n > 3
+	assert(num_extrema > 0);
+
+
+	int count = 0;
+	double F_extrema;
+
+
+	// determine root between -INFINITY and extrema[0]
+
+	// check if extrema is a root
+	F_extrema = polynom_N_value(F, n, extrema[0]);
+
+	if (about_equal(F_extrema, 0, (double)tolerance)) {
+		roots[count++] = extrema[0];
+	} else if (domain.re_min < extrema[0]) {
+
+		co_domain_t interval (domain.re_min, extrema[0], 0, 0);
+		// TODO: we can get better guesses I guess :P
+		// for now, we just make sure to search in the proper direction
+		double guess = extrema[0] - 100*tolerance;
+		if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
+			guess = polynom_N_root(F, f, n, guess, tolerance, interval);
+			assert (finite(guess));
+			roots[count++] = guess;
+		}
+	}
+
+	// generate guesses from extrema
+	for (int i = 1; i < num_extrema; i++) {
+		F_extrema = polynom_N_value(F, n, extrema[i]);
+		if (about_equal(F_extrema, 0, (double)tolerance)) {
+			roots[count++] = extrema[i];
+		} else if (domain(extrema[i-1]) || domain(extrema[i])) {
+			co_domain_t interval (extrema[i-1], extrema[i], 0, 0);
+			double guess = (extrema[i-1] + extrema[i])/2;
+
+			if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
+				guess = polynom_N_root(F, f, n, guess, tolerance, interval);
+				assert (finite(guess));
+				roots[count++] = guess;
+			}
+		}
+	}
+
+	if (domain(extrema[num_extrema-1])) {
+		co_domain_t interval (extrema[num_extrema-1], domain.re_max, 0, 0);
+		// TODO: we can get better guesses I guess :P
+		// for now, we just make sure to search in the proper direction
+		double guess = extrema[num_extrema-1] + 100*tolerance;
+		if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
+			guess = polynom_N_root(F, f, n, guess, tolerance, interval);
+			assert (finite(guess));
+			roots[count++] = guess;
+		}
+	}
+
+	return count;
 
 }
 
 
+
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
-static inline int __internal__polynom_N_roots(const double W[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
-	assert(W[0] != 0);
+static inline int __internal__polynom_N_roots(const double F[0], int n, double roots[0], float tolerance, CO_DOMAIN_T domain) {
+	assert(F[0] != 0);
 
 	switch(n) {
 	case 0:
 		return 0;
 	case 1:
-		return polynom1_roots(W[0], W[1], roots, domain);
+		return polynom1_roots(F[0], F[1], roots, domain);
 	case 2:
-		return polynom2_roots(W[0], W[1], W[2], roots, domain);
+		return polynom2_roots(F[0], F[1], F[2], roots, domain);
 	case 3:
-		return polynom3_roots(W[0], W[1], W[2], W[3], roots, domain);
+		return polynom3_roots(F[0], F[1], F[2], F[3], roots, domain);
 	default:
 		{
-			double* w = (double*)alloca(sizeof(double)*n);
-			polynom_N_derivative(W, w, n);
-			return polynom_N_roots(W, w, n, roots, tolerance, domain);
+			double* f = (double*)alloca(sizeof(double)*n);
+			polynom_N_derivative(F, n, f);
+			return polynom_N_roots(F, f, n, roots, tolerance, domain);
 		}
 	}
+}
+
+
+template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
+static inline double polynom_N_root(const double F[0], const double f[0], int n, double guess, float tolerance, CO_DOMAIN_T domain) {
+
+
+	double F_t;
+	double f_t;
+	double t = guess;
+	double t_avg = t + tolerance;
+	double F_t_previous = INFINITY;
+	do {
+		POLYNOM_N_ROOTS_COUNT();
+		guess = t;
+		F_t = polynom_N_value(F, n, guess);
+		f_t = polynom_N_value(f, n-1, guess);
+		if (f_t != 0) {
+			t = guess - F_t / f_t;
+			if (t >= domain.re_max) {
+				t = guess + (domain.re_max-guess)/2;
+			} else if (t <= domain.re_min) {
+				t = guess - (guess-domain.re_min)/2;
+			}
+		} else if (F_t == 0) {
+			return t;
+		}
+
+		if (!finite(t) || (fabs(guess-t) <= tolerance && fabs(F_t-F_t_previous) <= tolerance)) {
+			return t;
+		} else if (fabs(t-t_avg) < tolerance/2) {
+			// will not converge
+			return NAN;
+		}
+		F_t_previous = F_t;
+		t_avg = (t_avg + t)/2;
+	} while (true);
+
+	return t;
 }
 
 

@@ -1,20 +1,16 @@
 /*
- * general.h
+ * codomain.h
  *
- *  Created on: 3 Aug 2019
+ *  Created on: 30 Sep 2019
  *      Author: homac
  */
 
-#ifndef MATH2D_GENERAL_H_
-#define MATH2D_GENERAL_H_
-#include <limits.h>
+#ifndef MATH2D_CODOMAIN_H_
+#define MATH2D_CODOMAIN_H_
 
 
 namespace math2d {
 
-
-// higher accuracy than math.h : M_PI
-static const long double CONSTANT_PI = 3.14159265358979323846264338327950288;
 
 
 
@@ -157,19 +153,8 @@ static const struct CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T {
 } CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE; /**< All real numbers in range ]0:1[ */
 
 
-/**
- * signum function
- * signum(v) == 0 if v == 0
- * signum(v) == 1 if v > 0
- * signum(v) == -1 if v < 0
- * @return
- */
-template <typename T>
-T signum(T v) {
-    return T((T(0) < v) - (v < T(0)));
-}
 
-}; // namespace math
+} // math2d
 
 
-#endif /* MATH2D_GENERAL_H_ */
+#endif /* MATH2D_CODOMAIN_H_ */

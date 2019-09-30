@@ -8,9 +8,22 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+
+
 #include <glm/gtc/constants.hpp>
 #include <math2d/line.h>
 using namespace glm;
+
+
+
+
+#define BEZIER_BEZIER_EVALUATE   1
+#define POLYNOM_N_ROOTS_EVALUATE 1
+
 
 
 #include "test_polynom.h"
@@ -22,11 +35,6 @@ using namespace glm;
 #include "Test_MatrixMxM.h"
 using namespace math2d;
 
-
-
-#include <vector>
-#include <algorithm>
-using namespace std;
 
 
 
