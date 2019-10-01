@@ -24,6 +24,6 @@
 #endif
 
 
-
+#define MATH2D_POLYNOM_N_ROOT_MAX_ITERATIONS 10000
 
 #endif /* MATH2D_CONFIG_H_ */

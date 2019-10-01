@@ -189,40 +189,6 @@ struct __bezier_t__ {
 	 *   - 1 if primitive bounding box intersects
 	 *     0 if no intersection is possible
 	 */
-	int bb_intersects_t_old(const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, vec2& v, double& t) {
-		double result_s[3];
-		double result_t[3];
-		float tolerance = 0;
-		int count = bezier_line_segment_intersections_t(q0, q1, q2, q3, p1, p2, tolerance, result_t, result_s);
-		if (1 == count)
-		{
-			// We accept only unique intersections which occur between
-			// {p1,p2} AND {p0,p3} as true intersections.
-			t = result_t[0];
-			count = bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p3, tolerance, result_t, result_s);
-			if (count == 1) {
-				// The actual intersection point is somewhere between the two points found.
-				// As a good approximation we use the average of the two results we've got.
-				t = (t+result_t[0])/2.f;
-				bezier_point(t, q0,q1,q2,q3, v);
-				return 1;
-			} else {
-				v = VEC2_INVALID;
-				return -1;
-			}
-		}
-		else
-		{
-			// these intersections are *not* considered
-			// to be true intersections.
-			return -(  0 != bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p1, tolerance, result_t, result_s)
-					|| 0 != bezier_line_segment_intersections_t(q0, q1, q2, q3, p2, p3, tolerance, result_t, result_s)
-					|| 0 != bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p3, tolerance, result_t, result_s)
-					);
-		}
-	}
-
-
 	int bb_intersects_t(const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3, vec2& v, double& t_q) {
 		double result_s[3];
 		double result_t[3];
@@ -232,25 +198,34 @@ struct __bezier_t__ {
 		int evaluation_result = 0;
 		int total_count = 0;
 
+		// base line intersection?
 		int c03 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p3, tolerance, result_t, result_s);
 		total_count += c03;
 		if (c03 > 0) t_q_samples[t_count++] = result_t[0];
+
 		int c01 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p0, p1, tolerance, result_t, result_s);
 		total_count += c01;
 		if (c01 > 0) t_q_samples[t_count++] = result_t[0];
+
 		int c12 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p1, p2, tolerance, result_t, result_s);
 		total_count += c12;
 		if (c12 > 0) t_q_samples[t_count++] = result_t[0];
+
 		int c23 = bezier_line_segment_intersections_t(q0, q1, q2, q3, p2, p3, tolerance, result_t, result_s);
 		total_count += c23;
 		if (c23 > 0) t_q_samples[t_count++] = result_t[0];
 
 		if (c03 == 1 && total_count == 2) {
+			// we accept two found intersections
+			// if there are exactly two intersections in total
+			// and one intersection is on the base line
 			t_q = (t_q_samples[0] + t_q_samples[1])/2;
 			bezier_point(t_q, q0,q1,q2,q3, v);
 			evaluation_result = 1;
 		} else {
 			if (t_count) {
+				// we have some samples for t_q, use them to get an average
+				// value for t_q
 				int i;
 				for (i = 0; i < t_count; i++) t_q += t_q_samples[i];
 				t_q /= i;
@@ -536,6 +511,10 @@ int bezier_bezier_intersections_t(
 
 	typedef __bezier_t__ bezier_t;
 
+	// FIXME: cannot find all intersections in Q, if Q is self-intersecting!
+	// -> split in half or swap P and Q
+	// find good test to guarantee Q not self-intersecting
+
 	/*
 	 * Procedure
 	 * ---------
@@ -588,7 +567,6 @@ int bezier_bezier_intersections_t(
 	const double DOUBLE_INVALID = INFINITY;
 	int count = 0;
 
-
 	// work stack
 	stack<bezier_t> work;
 
@@ -601,6 +579,7 @@ int bezier_bezier_intersections_t(
 	// Last sample of a valid intersection point
 	// for the bezier part, currently worked on.
 	// Valid means, the intersection was found in segment p1 and p2
+	// TODO: move valid sample to working stack to avoid unnecessary iterations
 	vec2 valid_sample = VEC2_INVALID;
 
 

@@ -8,9 +8,10 @@
 #ifndef TEST_POLYNOM_H_
 #define TEST_POLYNOM_H_
 
-#include <math2d/polynom.h>
 #include <stdlib.h>
 #include "perf_clock.h"
+
+#include "math2d/polynom.h"
 
 using namespace math2d;
 namespace Test_polynom {
@@ -46,7 +47,7 @@ static inline void test_polynom_N_root() {
 }
 template <int N>
 static inline void testsub_polynom_N_roots(double params[N+1], double guesses[N], int num_guesses) {
-	float tolerance = 0.000001;
+	float tolerance = 0.0000001f;
 	polynom_t<N> W(params);
 	double t;
 	for (int i = 0; i < num_guesses; i++) {
@@ -56,7 +57,10 @@ static inline void testsub_polynom_N_roots(double params[N+1], double guesses[N]
 	}
 
 	double roots[N];
+	POLYNOM_N_ROOTS_EVALUATION_RESET();
 	int count = W.roots(roots, tolerance);
+	POLYNOM_N_ROOTS_EVALUATION_REPORT();
+	assert(num_guesses == count);
 	validate_roots(roots, count, guesses, num_guesses, tolerance);
 }
 

@@ -37,17 +37,39 @@ using namespace glm;
 #include "Test_MatrixMxM.h"
 using namespace math2d;
 
+#define PERF_INIT() \
+	double perf_duration; \
+	perf_time_t perf_start, perf_end; \
+	perf_clock(perf_start)
+#define PERF_REPORT(name) \
+	perf_clock(perf_end); \
+	perf_duration = perf_end - perf_start; \
+	printf("TIME '%s': %f\n", #name, perf_duration/perf_time_t::NSEC_PER_SEC); \
+	perf_start = perf_end
 
-
+#define PERF_DONE()
 
 void run_all_tests() {
-	Test_float_utils::all();
-	Test_polynom::all();
+	PERF_INIT();
+
 	Test_MatrixMxM::all();
+	PERF_REPORT(Test_MatrixMxM);
+
+	Test_float_utils::all();
+	PERF_REPORT(Test_float_utils);
+	Test_polynom::all();
+	PERF_REPORT(Test_polynom);
 	test_line_all();
-	test_Graph2DPlanar_all();
-	Test_Triangulator::all();
+	PERF_REPORT(test_line_all);
 	test_bezier_all();
+	PERF_REPORT(test_bezier_all);
+
+	test_Graph2DPlanar_all();
+	PERF_REPORT(test_Graph2DPlanar_all);
+	Test_Triangulator::all();
+	PERF_REPORT(Test_Triangulator);
+
+	PERF_DONE();
 }
 
 

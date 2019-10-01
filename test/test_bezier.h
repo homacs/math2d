@@ -374,8 +374,6 @@ static inline void test_bezier_bezier_intersections() {
 			vec2(1,0), vec2(1,0), vec2(1,2), vec2(1,2),
 			tolerance, 1);
 
-
-
 }
 
 

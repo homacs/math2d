@@ -38,7 +38,7 @@ static inline void bezier_point_highp(double f, glm::vec2 const & p0, glm::vec2 
  * p = P(f_t)
  * m = P'(f_t)
  */
-static inline void bezier_tangent(float f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m);
+static inline void bezier_tangent(double f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m);
 
 bool bezier_inflection_point(const glm::vec2 p0, const glm::vec2 p1, const glm::vec2 p2, const glm::vec2 p3, float& t);
 
@@ -276,6 +276,7 @@ static inline double bezier_point_closest_point_t (const glm::vec2& p0, const gl
  * p = P(f_t)
  * m = P'(f_t)
  */
+
 static inline void bezier_tangent(double f_t, glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3, glm::vec2& p, glm::vec2& m) {
 	// p = P(f_t)
 	bezier_point_highp(f_t, p0, p1, p2, p3, p);

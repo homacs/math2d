@@ -64,7 +64,38 @@ struct co_domain_t {
 		re_max(_re_max),
 		im_min(_im_min),
 		im_max(_im_max)
-	{}
+	{
+		assert(re_min <= re_max);
+		assert(im_min <= im_max);
+	}
+
+	bool operator() (double re) const {
+		return re_min <= re && re <= re_max;
+	}
+	bool operator() (double re, double im) const {
+		return operator()(re) && (im_min <= im && im <= im_max);
+	}
+	double clip(double value) const {
+		return value < re_min ? re_min : value > re_max ? re_max : value;
+	}
+};
+
+struct co_domain_dynamic_t {
+	double re_min = -DBL_MAX;
+	double re_max = DBL_MAX;
+	double im_min = -DBL_MAX;
+	double im_max = DBL_MAX;
+
+	co_domain_dynamic_t(const double _re_min = -DBL_MAX, const double _re_max = DBL_MAX, double _im_min = -DBL_MAX, double _im_max = DBL_MAX)
+	:
+		re_min(_re_min),
+		re_max(_re_max),
+		im_min(_im_min),
+		im_max(_im_max)
+	{
+		assert(re_min <= re_max);
+		assert(im_min <= im_max);
+	}
 
 	bool operator() (double re) const {
 		return re_min <= re && re <= re_max;
@@ -138,6 +169,7 @@ const struct CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T {
 		return value < re_min ? re_min : value > re_max ? re_max : value;
 	}
 } CO_DOMAIN_REAL_IN_0_1_INCLUSIVE; /**< All real numbers in range [0:1] */
+
 static const struct CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T {
 	const double re_min = 0;
 	const double re_max = 1;
