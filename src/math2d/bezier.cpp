@@ -195,7 +195,7 @@ struct __bezier_t__ {
 		const float tolerance = 0;
 		double t_q_samples[4] = {0};
 		int t_count = 0;
-		int evaluation_result = 0;
+		int sample_classification = 0;
 		int total_count = 0;
 
 		// base line intersection?
@@ -221,7 +221,8 @@ struct __bezier_t__ {
 			// and one intersection is on the base line
 			t_q = (t_q_samples[0] + t_q_samples[1])/2;
 			bezier_point(t_q, q0,q1,q2,q3, v);
-			evaluation_result = 1;
+			// valid sample
+			sample_classification = 1;
 		} else {
 			if (t_count) {
 				// we have some samples for t_q, use them to get an average
@@ -231,9 +232,10 @@ struct __bezier_t__ {
 				t_q /= i;
 				bezier_point(t_q, q0,q1,q2,q3, v);
 			}
-			evaluation_result = -(total_count > 0);
+			// vague sample
+			sample_classification = -(total_count > 0);
 		}
-		return evaluation_result;
+		return sample_classification;
 	}
 
 
@@ -500,7 +502,92 @@ int bezier_line_segment_intersections_iterative(const vec2& p0, const vec2& p1, 
 
 
 
+int __internal__bezier_bezier_intersections_t(
+		const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3,
+		const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3,
+		float tolerance,
+		double result_t_p[9],
+		double result_t_q[9]
+		);
+
 int bezier_bezier_intersections_t(
+		const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3,
+		const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3,
+		float tolerance,
+		double result_t_p[9],
+		double result_t_q[9]
+		)
+{
+	typedef __bezier_t__ bezier_t;
+
+	// our internal bezier bezier intersections function expects the
+	// second curve to be not self-intersecting. Thus, we have to deal
+	// with this first.
+
+	bool p_self_intersecting = bezier_self_intersecting(p0,p1,p2,p3);
+	bool q_self_intersecting = bezier_self_intersecting(q0,q1,q2,q3);
+
+	if (unlikely(p_self_intersecting && q_self_intersecting)) {
+		// both self intersecting
+		// split Q in half and test all combinations PxQ1 and PxQ2
+		bezier_t Q1(q0,q1,q2,q3), Q2;
+		bezier_t::split(0.5, Q1, Q2);
+
+		// Since we split one curve, we may get duplicate entries at
+		// the splitting location.
+		// Memorise values of t_p at the boundary between Q1 and Q2
+		// to check them in the second run.
+		double t_p_boundary_1 = INFINITY;
+		double t_p_boundary_2 = INFINITY;
+		int total_count = 0;
+		int count = __internal__bezier_bezier_intersections_t(p0, p1, p2, p3, Q1.p0, Q1.p1, Q1.p2, Q1.p3,
+				tolerance,
+				result_t_p, result_t_q);
+		for (double *t_q = result_t_q + total_count; t_q < t_q+ total_count + count; t_q++) {
+			result_t_q[total_count] = Q1.getOriginalFactor(*t_q);
+			if (about_equal(*t_q, 1.0, double(tolerance))) {
+				// found a t_q at the splitting location
+				if (t_p_boundary_1 == INFINITY) t_p_boundary_1 = result_t_p[total_count];
+				else t_p_boundary_1 = result_t_p[total_count];
+			}
+			total_count++;
+		}
+		count = __internal__bezier_bezier_intersections_t(p0, p1, p2, p3, Q2.p0, Q2.p1, Q2.p2, Q2.p3,
+				tolerance,
+				result_t_p + total_count, result_t_q + total_count);
+		for (double *t_q = result_t_q + total_count, *t_p = result_t_p + total_count;
+				t_q < t_q+ total_count + count; t_q++, t_p++) {
+			result_t_q[total_count] = Q2.getOriginalFactor(*t_q);
+			result_t_p[total_count] = *t_p;
+			if (about_equal(*t_q, 0.0, double(tolerance)))
+			{
+				// found a t_q at the splitting location
+				// -> check if we have an identical match from previous run
+				if (about_equal(t_p_boundary_1, result_t_p[total_count], double(tolerance))) {
+					t_p_boundary_1 = INFINITY;
+					total_count--;
+				} else if (about_equal(t_p_boundary_2, result_t_p[total_count], double(tolerance))) {
+					t_p_boundary_2 = INFINITY;
+					total_count--;
+				}
+
+			}
+			total_count++;
+		}
+		return total_count;
+	} else if (q_self_intersecting) {
+		// P is not self intersecting
+		// --> swap P and Q
+		return __internal__bezier_bezier_intersections_t(q0,q1,q2,q3,p0,p1,p2,p3, tolerance, result_t_q, result_t_p);
+	} else {
+		// everything is fine -> go ahead
+		return __internal__bezier_bezier_intersections_t(p0,p1,p2,p3,q0,q1,q2,q3, tolerance, result_t_p, result_t_q);
+	}
+	return 0;
+}
+
+
+int __internal__bezier_bezier_intersections_t(
 		const vec2& p0, const vec2& p1, const vec2& p2, const vec2& p3,
 		const vec2& q0, const vec2& q1, const vec2& q2, const vec2& q3,
 		float tolerance,
@@ -511,16 +598,13 @@ int bezier_bezier_intersections_t(
 
 	typedef __bezier_t__ bezier_t;
 
-	// FIXME: cannot find all intersections in Q, if Q is self-intersecting!
-	// -> split in half or swap P and Q
-	// find good test to guarantee Q not self-intersecting
 
 	/*
 	 * Procedure
 	 * ---------
 	 * This function implements the recursive subdivision method to
 	 * determine intersection points of two bezier curves in an iterative
-	 * fashion (internal stack management) using a local work stack.
+	 * fashion using a local working stack (internal stack management).
 	 * One bezier curve cannot have intersection points with the other
 	 * if there is no intersection of its bounding box {p0,p1,p2,p3}
 	 * and the other bezier curve. Thus, an intersection of any of the
@@ -532,23 +616,26 @@ int bezier_bezier_intersections_t(
 	 * sample, that has to be further analysed to determine its accuracy
 	 * (see below). If the accuracy of the sample does not satisfy the
 	 * given tolerance requirement (see parameter) then the bezier curve
-	 * is subdivided (split) at f=0.5 into two sub-curves, with its
+	 * is subdivided (split) at t=0.5 into two sub-curves, with its
 	 * respective control points. Those two bezier sub-curves replace
 	 * the previous curve on the working stack and will be tested in
-	 * subsequent iterations of the main loop below. Once, the accuracy
+	 * subsequent iterations of the main loop. Once, the accuracy
 	 * of a sample has reached the given tolerance, the sample is
-	 * stored as a result and the (sub-)curve is removed from the work stack.
+	 * stored as a result and the (sub-)curve is removed from the working stack.
 	 *
 	 * Intersection Point Samples
 	 * --------------------------
 	 * Intersection point samples may be classified as
-	 * - VALID: High probability of a good sample
-	 * - INVALID: Low to no probability of a useful sample.
+	 * - valid:   Sample is an approximation for one specific intersection point,
+	 *            which is known to exist.
+	 * - vague:   Sample is an approximation for multiple possible intersection
+	 *            points, which may also be non-existing.
+	 * - invalid: Sample contains no information.
 	 *
-	 * Valid samples will be further analysed to determine its accuracy.
+	 * Valid and vague samples will be further analysed to determine its accuracy.
 	 *
 	 * Accuracy is determined based on two methods:
-	 * 1. Deviation (distance) between current and last sample.
+	 * 1. Deviation (distance) between current and last valid sample.
 	 * 2. Maximum extend of the bezier-curve estimated based on its bounding box.
 	 *
 	 * If one of these values is lower or equal to the given accuracy tolerance
@@ -562,8 +649,29 @@ int bezier_bezier_intersections_t(
 	 * cross each other. To prevent the algorithm from getting more complex
 	 * we just sub-divide curves with inflection point at their inflection
 	 * point, thereby turning them into two curves without inflection point.
+	 *
+	 * Main Loop and Working Order
+	 * ---------------------------
+	 * The main loop maintains (sub-)curves to be processed on a stack in right
+	 * to left order. The right most sub-curve is always on top of the stack
+	 * and will be processed first.
+	 *
+	 * The main loop keeps the last valid sample of a test to be able to
+	 * estimate accuracy of the next sample. The sample is meaningful for
+	 * the section of the curve, it was found on. Thus, every sub-curve of
+	 * this section can be tested against this last sample. Every time a valid
+	 * result was found, the last sample is set to INVALID, indicating that
+	 * there is no last sample for the current sub-curve available. Thus, if
+	 * there are two intersection points to be found on a given section, and
+	 * one was already found, there will be one extra iteration of the loop
+	 * to create a new sample for the other intersection point, before its
+	 * accuracy can be determined. However, since there are multiple
+	 * intersections on the section in question, the previous sample must
+	 * have been quite fare away from the second intersection point anyway.
+	 * Thus, that the additional test is wasted, is very unlikely.
+	 *
 	 */
-	assert(tolerance >= 0.0000009f);
+	assert(tolerance >= 0.0000009f); // TODO: ?
 	const double DOUBLE_INVALID = INFINITY;
 	int count = 0;
 
@@ -578,10 +686,9 @@ int bezier_bezier_intersections_t(
 
 	// Last sample of a valid intersection point
 	// for the bezier part, currently worked on.
-	// Valid means, the intersection was found in segment p1 and p2
-	// TODO: move valid sample to working stack to avoid unnecessary iterations
+	// Valid means, the accuracy of the sample is at least higher than its
+	// deviation to the next sample.
 	vec2 valid_sample = VEC2_INVALID;
-
 
 	float f;
 	if (bezier_inflection_point(p0, p1, p2, p3, f)) {
@@ -677,6 +784,18 @@ int bezier_bezier_intersections_t(
 						)
 				{
 					// ignore duplicates
+
+					// If an intersection point is exactly on a boundary between
+					// two adjacent sub-curves, then it may be detected on both
+					// sub-curves. Since the main loop is basically searching from
+					// right to left (t=1 to t=0), the previously found identical
+					// result is now the last element in the result sets.
+
+					// TODO: performance: try to remove test on duplicates.
+					// This branch here can be removed, if we can guarantee, that
+					// an intersection point on a domain boundary is found exactly
+					// once.
+
 				}
 				else
 				{
@@ -691,7 +810,7 @@ int bezier_bezier_intersections_t(
 				if (intersecting == 1) {
 					valid_sample = v_q;
 				}
-				// TODO: performance: use reference to next item on stack instead of local variables?
+				// TODO: performance: use reference to next item on stack instead of local variables
 				bezier_t::split(0.5, b, second_half);
 				work.push(second_half);
 			}

@@ -82,12 +82,13 @@ int bezier_line_segment_intersections_t(
 		CO_DOMAIN_S interval_s = CO_DOMAIN_REAL_IN_0_1_INCLUSIVE);
 
 /**
- * Computes all intersections of two bezier curves using
- * the recursive subdivision method.
- * Parameter 'tolerance' controls the maximum deviation of accepted
- * results (intersection points) of the true intersection
- * point. Thus, lower tolerance effectively means higher
- * processing effort.
+ * Compute all intersections of two bezier curves using
+ * a numerical approach.
+ *
+ * Parameter 'tolerance' controls the maximum deviation
+ * of accepted results (intersection points) of the true
+ * intersection point. Thus, lower tolerance effectively
+ * means higher processing effort.
  */
 int bezier_bezier_intersections_t(
 		const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3,
@@ -335,7 +336,17 @@ static inline void bezier_split_highp(double f, glm::vec2& p0, glm::vec2& p1, gl
 }
 
 
-
+static inline bool bezier_self_intersecting(glm::vec2 const & p0, glm::vec2 const & p1, glm::vec2 const & p2, glm::vec2 const & p3) {
+	glm::vec2 center;
+	bezier_point(0.5, p0, p1, p2, p3, center);
+	double unused[3];
+	int count = bezier_line_segment_intersections_t(p0, p1, p2, p3, center, p0, 0, unused, unused);
+	if (count) {
+		count = bezier_line_segment_intersections_t(p0, p1, p2, p3, center, p3, 0, unused, unused);
+		return count != 0;
+	}
+	return false;
+}
 
 
 static inline void bezier_split(float f, glm::vec2& p0, glm::vec2& p1, glm::vec2& p2, glm::vec2& p3, glm::vec2& q0, glm::vec2& q1, glm::vec2& q2, glm::vec2& q3) {

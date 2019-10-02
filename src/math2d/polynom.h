@@ -571,15 +571,14 @@ static inline double polynom_N_root(const double F[0], const double f[0], int n,
 	double f_t;
 	// t
 	double t = guess;
-	// previous F(t)
-	double F_t_previous = INFINITY;
+
 	// maximum number of iterations
 	int iterations = MATH2D_POLYNOM_N_ROOT_MAX_ITERATIONS;
 
 	assert(tolerance > 0);
 	assert(domain(guess));
 
-	while (!--iterations) {
+	while (--iterations) {
 		POLYNOM_N_ROOTS_COUNT();
 		guess = t;
 
@@ -599,12 +598,10 @@ static inline double polynom_N_root(const double F[0], const double f[0], int n,
 		assert(domain(t));
 
 
-		if (!finite(t) || (fabs(guess-t) <= tolerance && fabs(F_t-F_t_previous) <= tolerance)) {
+		if (!finite(t) || (fabs(guess-t) <= tolerance && about_equal(F_t, 0.0, double(tolerance)))) {
 			return t;
 		}
 
-
-		F_t_previous = F_t;
 	}
 
 	// aborted to avoid infinite loop
@@ -621,8 +618,10 @@ static inline void polynom_N_features(const double F[0], const double f[0], int 
 	//     a. Algorithm can run into infinite loop, jumping around one particular root.
 	//     b. Algorithm might fail to find certain root and returns another one instead.
 	//
-	// This method splits the domain into search intervals, where each interval is
+	// This method first splits the domain into search intervals, where each interval is
 	// guaranteed to contain at most one root, based on known features of the function.
+	// Then it checks the boundaries of each interval and uses the Newton_raphson
+	// algorithm only, if an interval is guaranteed to contain a root.
 	//
 	// Search intervals are determined based on the following conclusions:
 	//     1. there is at most one root between two extrema.

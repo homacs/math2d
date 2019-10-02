@@ -80,13 +80,13 @@ static inline bool about_equal(glm::tvec2<double, P> const & a, glm::tvec2<doubl
 }
 
 
-static inline bool about_equal(double a, double b, double const & tolerance) {
+static inline bool about_equal(double a, double b, double tolerance) {
 	assert(tolerance >= 0.0);
 	double dist = fabs(a-b);
 	return dist <= tolerance;
 }
 
-static inline bool about_equal(float a, float b, float const & tolerance) {
+static inline bool about_equal(float a, float b, float tolerance) {
 	assert(tolerance >= 0.0);
 	float dist = fabs(a-b);
 	return dist <= tolerance;
