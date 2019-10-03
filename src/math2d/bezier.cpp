@@ -228,6 +228,7 @@ struct __bezier_t__ {
 				// we have some samples for t_q, use them to get an average
 				// value for t_q
 				int i;
+				t_q = 0;
 				for (i = 0; i < t_count; i++) t_q += t_q_samples[i];
 				t_q /= i;
 				bezier_point(t_q, q0,q1,q2,q3, v);
@@ -714,6 +715,7 @@ int __internal__bezier_bezier_intersections_t(
 		// check for intersection
 		//
 		v_q = VEC2_INVALID;
+		t_q = DOUBLE_INVALID;
 		int intersecting = b.bb_intersects_t(q0, q1, q2, q3, v_q, t_q);
 		if (intersecting) {
 			// interpolation factor for P(t_p)
@@ -730,7 +732,7 @@ int __internal__bezier_bezier_intersections_t(
 				// TODO: move all this to a separate function
 
 				// interval of the split bezier projected onto the original bezier curve
-				co_domain_t interval_on_P(b.getOriginalFactor(0), b.getOriginalFactor(1), 0, 0);
+				co_domain_t<> interval_on_P(b.getOriginalFactor(0), b.getOriginalFactor(1));
 
 
 				// To find the factor t_p for the first bezier P(t)

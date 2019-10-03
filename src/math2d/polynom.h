@@ -173,7 +173,7 @@ static inline void polynom_N_features(const double F[0], const double f[0], int 
  * It is recommended to split the co-domain into intervals
  * between extrema, inflection points and given boundaries.
  * If this condition is met, then this function will always
- * converge on the root inside given interval and never abort.
+ * converge on the root inside given interval.
  *
  * The algorithm will abort after MATH2D_POLYNOM_N_ROOT_MAX_ITERATIONS
  * iterations to avoid infinite loops. Return value in this case is NAN.
@@ -546,8 +546,8 @@ static inline int __internal__polynom_N_roots(const double F[0], int n, double r
  */
 template <class CO_DOMAIN_T = CO_DOMAIN_REAL_T>
 static inline double __internal__polynom_N_interval_contains_root(const double F[0], int n, double tolerance, CO_DOMAIN_T two_extrema_interval) {
-	double v_min = polynom_N_value(F, n, two_extrema_interval.re_min);
-	double v_max = polynom_N_value(F, n, two_extrema_interval.re_max);
+	double v_min = polynom_N_value(F, n, two_extrema_interval.lower);
+	double v_max = polynom_N_value(F, n, two_extrema_interval.upper);
 
 	// if at least one of the boundaries is a root,
 	// then there is no more root to be found.
@@ -590,10 +590,10 @@ static inline double polynom_N_root(const double F[0], const double f[0], int n,
 		assert (f_t != 0);
 
 		t = guess - F_t / f_t;
-		if (t >= domain.re_max) {
-			t = (domain.re_max + guess)/2;
-		} else if (t <= domain.re_min) {
-			t = (guess + domain.re_min)/2;
+		if (t >= domain.upper) {
+			t = (domain.upper + guess)/2;
+		} else if (t <= domain.lower) {
+			t = (guess + domain.lower)/2;
 		}
 		assert(domain(t));
 
@@ -686,46 +686,46 @@ static inline void polynom_N_features(const double F[0], const double f[0], int 
 		// merge features
 		int num_feats = num_inflections + num_extrema;
 
-		co_domain_dynamic_t interval;
+		co_domain_std_t interval;
 
-		interval.re_min = domain.re_min;
-		double F_feature = polynom_N_value(F, n, interval.re_min);
+		interval.lower = domain.lower;
+		double F_feature = polynom_N_value(F, n, interval.lower);
 		if (about_equal(F_feature, 0, (double)tolerance)) {
 			assert(num_roots < n);
-			roots[num_roots++] = interval.re_min;
+			roots[num_roots++] = interval.lower;
 		}
 
 		for (int i = 0, i_e = 0, i_i = 0; i < num_feats+1; i++) {
 			if (i < num_feats) {
 				if (i_e < num_extrema && (i_i == num_inflections || extrema[i_e] < inflections[i_i])) {
-					interval.re_max = extrema[i_e++];
+					interval.upper = extrema[i_e++];
 				} else {
 					assert(i_i < num_inflections);
-					interval.re_max = inflections[i_i++];
+					interval.upper = inflections[i_i++];
 				}
 			} else {
-				interval.re_max = domain.re_max;
+				interval.upper = domain.upper;
 			}
 
-			assert(interval.re_min <= interval.re_max);
+			assert(interval.lower <= interval.upper);
 
-			F_feature = polynom_N_value(F, n, interval.re_max);
+			F_feature = polynom_N_value(F, n, interval.upper);
 
 			if (about_equal(F_feature, 0, (double)tolerance)) {
-				if (!num_roots || !about_equal(roots[num_roots-1], interval.re_max, t_tolerance)) {
+				if (!num_roots || !about_equal(roots[num_roots-1], interval.upper, t_tolerance)) {
 					assert(num_roots < n);
-					roots[num_roots++] = interval.re_max;
+					roots[num_roots++] = interval.upper;
 				}
 			} else {
 				if(__internal__polynom_N_interval_contains_root(F, n, tolerance, interval)) {
-					double guess = (interval.re_max + interval.re_min)/2;
+					double guess = (interval.upper + interval.lower)/2;
 					if (!finite(guess*guess)) {
 						// TODO: we can get better guesses in case of infinite boundaries, I guess :P
 						// for now, we just make sure to search in proper direction
-						if (finite(interval.re_min*interval.re_min)) {
-							guess = interval.re_min + 100*tolerance;
-						} else if (finite(interval.re_max*interval.re_max)) {
-							guess = interval.re_max - 100*tolerance;
+						if (finite(interval.lower*interval.lower)) {
+							guess = interval.lower + 100*tolerance;
+						} else if (finite(interval.upper*interval.upper)) {
+							guess = interval.upper - 100*tolerance;
 						} else {
 							guess = 0;
 						}
@@ -739,7 +739,7 @@ static inline void polynom_N_features(const double F[0], const double f[0], int 
 				}
 			}
 
-			interval.re_min = interval.re_max;
+			interval.lower = interval.upper;
 		}
 	}
 }

@@ -198,14 +198,14 @@ static inline double bezier_point_closest_point_t (const glm::vec2& p0, const gl
 	// edges of the domain. Closer edge wins.
 	//
 
-	result_t = domain.re_min;
+	result_t = domain.lower;
 	bezier_point(result_t, p0,p1,p2,p3, result_v);
 	result_distance = length(v - result_v);
 
-	bezier_point(domain.re_max, p0,p1,p2,p3, tmp);
+	bezier_point(domain.upper, p0,p1,p2,p3, tmp);
 	double distance = length(v - tmp);
 	if (distance < result_distance) {
-		result_t = domain.re_max;
+		result_t = domain.upper;
 		result_v = tmp;
 		result_distance = distance;
 	}

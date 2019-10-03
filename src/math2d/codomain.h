@@ -16,175 +16,188 @@ namespace math2d {
 
 
 
+
 /**
- * IMPORTANT: this is currently used only to specify valid ranges for results!
+ * Interval boundary declarator comparing given values against stored boundary.
+ * operation: v >= bound
+ */
+template <typename T = double>
+struct LOIN {
+	T bound;
+	LOIN(T v):bound(v){}
+	bool operator ()(T v) const {
+		return bound <= v;
+	}
+	operator T() const {return bound;}
+	LOIN& operator = (T _value) {
+		bound = _value;
+		return *this;
+	}
+	LOIN& operator = (const LOIN& other) {
+		return operator = (other.bound);
+	}
+};
+
+/**
+ * Interval boundary declarator comparing given values against stored boundary.
+ * operation: v > bound
+ */
+template <typename T = double>
+struct LOEX {
+	T bound;
+	LOEX(T v):bound(v){}
+	bool operator ()(T v) const {
+		return bound < v;
+	}
+	operator T() const {return bound;}
+	LOEX& operator = (T _value) {
+		bound = _value;
+		return *this;
+	}
+	LOEX& operator = (const LOEX& other) {
+		return operator = (other.bound);
+	}
+};
+
+/**
+ * Interval boundary declarator comparing given values against stored boundary.
+ * operation: v <= bound
+ */
+template <typename T = double>
+struct UPIN {
+	T bound;
+	UPIN(T v):bound(v){}
+	bool operator ()(T v) const {
+		return v <= bound;
+	}
+	operator T() const {return bound;}
+	UPIN& operator = (T _value) {
+		bound = _value;
+		return *this;
+	}
+	UPIN& operator = (const UPIN& other) {
+		return operator = (other.bound);
+	}
+};
+
+/**
+ * Interval boundary declarator comparing given values against stored boundary.
+ * operation: v < value
+ */
+template <typename T = double>
+struct UPEX {
+	T bound;
+	UPEX(T v):bound(v){}
+	bool operator ()(T v) const {
+		return v < bound;
+	}
+	operator T() const {return bound;}
+
+	UPEX& operator = (T _value) {
+		bound = _value;
+		return *this;
+	}
+	UPEX& operator = (const UPEX& other) {
+		return operator = (other.bound);
+	}
+};
+
+
+
+/**
  *
- * Template to describe a co-domain for mathematical functions.
+ * Generally, a co-domain describes a set of valid values. We
+ * use a simpler definition, where the domain is just an interval.
  *
- * Generally the co-domain describes the range of valid numbers.
- * Bounds of value ranges are inclusive, meaning values equal to
- * min or max are accepted as well.
- * To limit the domain to real numbers, im_min and im_max have to
- * be 0 . This will accept all real numbers and complex numbers
- * with im == 0.
+ * In this implementation, we define boundaries by a value
+ * and a comparison operator (one of GT, GE, LE, LT).
+ * At initialisation, the comparator is given a value, which it
+ * uses to check whether its boundary condition is met.
  *
- * A co-domain can be described by other means too. For example
- * a function like
- *
+ * A co-comain with default parameters accepts all finite double
+ * values. Example:
  * <pre>
- * 		bool mydomain(double re, double im = 0.0) {
- * 			return (im==0) && 0 < re <= 256;
- * 		}
+ *   co_domain_t<> finite_double;
+ *   if (finite_double(0.0)) printf("yep");
+ *   if (!finite_double(INFINITY)) printf("nope");
  * </pre>
  *
- * will accept all real numbers in range ]0:256].
+ * The type of accepted values defaults to double.
+ * Thus, a simple [0,1] boundaries inclusive interval for
+ * double values can be defined like this:
+ * <pre>
+ *    co_domain_t<> interval(LOIN<>(0),UPIN<>(1));
+ * </pre>
  *
- * For most cases where bounds are unlimited, there are predefined
- * structures, which have better runtime performance.
+ * Since lower and upper boundaries default to LOIN and UPIN
+ * the next declaration will does the same as the one above:
+ * <pre>
+ *    co_domain_t<> interval(0,1);
+ * </pre>
  *
- *		CO_DOMAIN_REAL       all real numbers.
- *		CO_DOMAIN_COMPLEX    all complex numbers.
+ * A boundary exclusive interval for const float values would
+ * look like this:
+ * <pre>
+ *    const co_domain_t<const float> interval(LOEX<const float>(0), UPEX<const float>(1));
+ * </pre>
  *
- *
- * @param T scalar number type (float, double, long, int, ...)
- * @param re_min lower bound for real numbers
- * @param re_max upper bound for real numbers
- * @param im_min lower bound for imaginary part of complex numbers
- * @param im_max upper bound for imaginary part of complex numbers
+ * This can be made more readable when typedefs are used:
+ * <pre>
+ *    typedef const co_domain_t<const float, LOEX<const float>, UPEX<const float>> co_domain_const_float_excl_t;
+ *    co_domain_const_float_excl_t interval(0,1);
+ * </pre>
  */
+template<typename T = double, class LOWER = LOIN<T>, class UPPER = UPIN<T>>
 struct co_domain_t {
-	const double re_min = -DBL_MAX;
-	const double re_max = DBL_MAX;
-	const double im_min = -DBL_MAX;
-	const double im_max = DBL_MAX;
+	LOWER lower;
+	UPPER upper;
 
-	co_domain_t(const double _re_min = -DBL_MAX, const double _re_max = DBL_MAX, double _im_min = -DBL_MAX, double _im_max = DBL_MAX)
-	:
-		re_min(_re_min),
-		re_max(_re_max),
-		im_min(_im_min),
-		im_max(_im_max)
-	{
-		assert(re_min <= re_max);
-		assert(im_min <= im_max);
+	co_domain_t(
+			LOWER _min = LOIN<T>(-DBL_MAX),
+			UPPER _max = UPIN<T>(DBL_MAX)
+	)
+	: lower(_min) , upper(_max)
+	{}
+
+	bool operator() (T re) const {
+		return lower(re) && upper(re);
 	}
 
-	bool operator() (double re) const {
-		return re_min <= re && re <= re_max;
-	}
-	bool operator() (double re, double im) const {
-		return operator()(re) && (im_min <= im && im <= im_max);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-};
-
-struct co_domain_dynamic_t {
-	double re_min = -DBL_MAX;
-	double re_max = DBL_MAX;
-	double im_min = -DBL_MAX;
-	double im_max = DBL_MAX;
-
-	co_domain_dynamic_t(const double _re_min = -DBL_MAX, const double _re_max = DBL_MAX, double _im_min = -DBL_MAX, double _im_max = DBL_MAX)
-	:
-		re_min(_re_min),
-		re_max(_re_max),
-		im_min(_im_min),
-		im_max(_im_max)
-	{
-		assert(re_min <= re_max);
-		assert(im_min <= im_max);
-	}
-
-	bool operator() (double re) const {
-		return re_min <= re && re <= re_max;
-	}
-	bool operator() (double re, double im) const {
-		return operator()(re) && (im_min <= im && im <= im_max);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
+	/** clip v to the boundary, which was exceeded. */
+	T clip(T v) const {
+		return !lower(v) ? T(lower) : !upper(v) ? T(upper) : v;
 	}
 
 };
 
-const struct CO_DOMAIN_REAL_T {
-	const double re_min = -DBL_MAX;
-	const double re_max = DBL_MAX;
-	const double im_min = 0;
-	const double im_max = 0;
-	bool operator() (double re) const {
-		return finite(re);
-	}
-	bool operator() (double re, double im) const {
-		return finite(re) && (im == 0);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-} CO_DOMAIN_REAL;
+/** co-domain for finite double values */
+typedef co_domain_t<double> co_domain_std_t;
+/** co-domain for finite double values including boundaries */
+typedef co_domain_std_t co_domain_std_inclusive_t;
+/** co-domain for finite double values excluding boundaries */
+typedef co_domain_t<double, LOEX<>, UPEX<>> co_domain_std_exclusive_t;
+/** const co-domain for finite double values */
+typedef const co_domain_t<const double> co_domain_const_t;
+/** const co-domain for finite double values including boundaries */
+typedef const co_domain_t<const double, const LOIN<const double>, const UPIN<const double>> co_domain_const_inclusive_t;
+/** const co-domain for finite double values excluding boundaries */
+typedef const co_domain_t<const double, const LOEX<const double>, const UPEX<const double>> co_domain_const_exclusive_t;
 
-const struct CO_DOMAIN_COMPLEX_T {
-	const double re_min = -DBL_MAX;
-	const double re_max = DBL_MAX;
-	const double im_min = -DBL_MAX;
-	const double im_max = DBL_MAX;
-	bool operator() (double re) const {
-		return finite(re);
-	}
-	bool operator() (double re, double im) const {
-		return finite(re) && finite(im);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-} CO_DOMAIN_COMPLEX;
+/** const co-domain for finite double values */
+typedef co_domain_const_t CO_DOMAIN_REAL_T;
+const CO_DOMAIN_REAL_T CO_DOMAIN_REAL;
 
-const struct CO_DOMAIN_REAL_IN_NEG_1_POS_1_T {
-	const double re_min = -1;
-	const double re_max = 1;
-	const double im_min = 0;
-	const double im_max = 0;
-	bool operator() (double value, double im = 0.0) const {
-		return re_min <= value && value <= re_max && (im == 0.0);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-} CO_DOMAIN_REAL_IN_NEG_1_POS_1; /**< All real numbers in range [-1:1] */
+/** const co-domain for double values in interval [-1,1] inclusive */
+typedef co_domain_const_inclusive_t CO_DOMAIN_REAL_IN_NEG_1_POS_1_T;
+const CO_DOMAIN_REAL_IN_NEG_1_POS_1_T CO_DOMAIN_REAL_IN_NEG_1_POS_1(-1,1);
 
-const struct CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T {
-	const double re_min = 0;
-	const double re_max = 1;
-	const double im_min = 0;
-	const double im_max = 0;
-	bool operator() (double re) const {
-		return re_min <= re && re <= re_max;
-	}
-	bool operator() (double value, double im) const {
-		return re_min <= value && value <= re_max && (im == 0.0);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-} CO_DOMAIN_REAL_IN_0_1_INCLUSIVE; /**< All real numbers in range [0:1] */
+/** const co-domain for double values in interval [0,1] inclusive */
+typedef co_domain_const_inclusive_t CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T;
+const CO_DOMAIN_REAL_IN_0_1_INCLUSIVE_T CO_DOMAIN_REAL_IN_0_1_INCLUSIVE(0,1);
 
-static const struct CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T {
-	const double re_min = 0;
-	const double re_max = 1;
-	const double im_min = 0;
-	const double im_max = 0;
-	bool operator() (double re) const {
-		return 0 < re && re < 1;
-	}
-	bool operator() (double re, double im) const {
-		return 0 < re && re < 1 && (im == 0.0);
-	}
-	double clip(double value) const {
-		return value < re_min ? re_min : value > re_max ? re_max : value;
-	}
-} CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE; /**< All real numbers in range ]0:1[ */
+/** const co-domain for double values in interval ]0,1[ exclusive */
+typedef co_domain_const_exclusive_t CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T;
+const CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE_T CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE(0,1);
 
 
 

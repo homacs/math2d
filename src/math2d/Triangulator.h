@@ -1069,7 +1069,7 @@ public:
 							// split edge is previous
 							it_s = it_prev;
 							split = (*it_s)->e;
-							AreaEdge* neighbour = (*it_ael)->e;
+							neighbour = (*it_ael)->e;
 							assert(isSplitEdge(split));
 							if (downSplits) {
 								// split left down
