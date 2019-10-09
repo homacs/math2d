@@ -89,7 +89,7 @@ static inline double pseudo_orientation_e2(glm::vec2 dir) {
 
 	// dir = normalize(dir);
 
-	double len = sqrt(double(dir.x)*dir.x + double(dir.y)*dir.y);
+	double len = ::sqrt(double(dir.x)*dir.x + double(dir.y)*dir.y);
 
 	// sin of angle between dir and e_y
 	// gives information if angle is in left (<0) or right half plane
@@ -136,7 +136,7 @@ static inline double pseudo_orientation_e2(glm::vec2 dir) {
  */
 static inline double pseudo_orientation_e1(glm::vec2 dir) {
 
-	double len = sqrt(double(dir.x)*dir.x + double(dir.y)*dir.y);
+	double len = ::sqrt(double(dir.x)*dir.x + double(dir.y)*dir.y);
 
 	double _sin_angle = -double(dir.y)/len;
 	double _cos_angle = double(dir.x)/len;

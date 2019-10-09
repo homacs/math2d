@@ -355,7 +355,7 @@ static inline void testsub_bezier_bezier_intersections(
 
 static inline void test_bezier_bezier_intersections() {
 
-	float tolerance = 0.000001f;
+	float tolerance = 1e-5f;
 
 	// no turning point, same bezier mirrored
 	// two intersections

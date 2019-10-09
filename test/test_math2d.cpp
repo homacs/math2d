@@ -27,7 +27,6 @@ using namespace glm;
 
 
 
-
 #include "test_polynom.h"
 #include "test_float-utils.h"
 #include "test_line.h"
@@ -75,7 +74,11 @@ void run_all_tests() {
 
 
 int main(int argc, char** argv) {
-	test_bezier_bezier_intersections();
+
+	// Test_polynom::test_polynom4_roots_2();
+    // Test_polynom::test_polynom4_roots_random();
+
+	// test_bezier_bezier_intersections();
 
 	run_all_tests();
 	return 0;

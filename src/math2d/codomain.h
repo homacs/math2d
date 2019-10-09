@@ -14,11 +14,8 @@
 namespace math2d {
 
 
-
-
-
 /**
- * Interval boundary declarator comparing given values against stored boundary.
+ * Lower boundary declarator comparing given values against stored boundary.
  * operation: v >= bound
  */
 template <typename T = double>
@@ -39,7 +36,7 @@ struct LOIN {
 };
 
 /**
- * Interval boundary declarator comparing given values against stored boundary.
+ * Lower boundary declarator comparing given values against stored boundary.
  * operation: v > bound
  */
 template <typename T = double>
@@ -60,7 +57,7 @@ struct LOEX {
 };
 
 /**
- * Interval boundary declarator comparing given values against stored boundary.
+ * Upper boundary declarator comparing given values against stored boundary.
  * operation: v <= bound
  */
 template <typename T = double>
@@ -81,7 +78,7 @@ struct UPIN {
 };
 
 /**
- * Interval boundary declarator comparing given values against stored boundary.
+ * Upper boundary declarator comparing given values against stored boundary.
  * operation: v < value
  */
 template <typename T = double>

@@ -544,7 +544,8 @@ int bezier_bezier_intersections_t(
 		int count = __internal__bezier_bezier_intersections_t(p0, p1, p2, p3, Q1.p0, Q1.p1, Q1.p2, Q1.p3,
 				tolerance,
 				result_t_p, result_t_q);
-		for (double *t_q = result_t_q + total_count; t_q < t_q+ total_count + count; t_q++) {
+		double *t_q_end = result_t_q + total_count + count;
+		for (double *t_q = result_t_q + total_count; t_q < t_q_end; t_q++) {
 			result_t_q[total_count] = Q1.getOriginalFactor(*t_q);
 			if (about_equal(*t_q, 1.0, double(tolerance))) {
 				// found a t_q at the splitting location
@@ -556,8 +557,9 @@ int bezier_bezier_intersections_t(
 		count = __internal__bezier_bezier_intersections_t(p0, p1, p2, p3, Q2.p0, Q2.p1, Q2.p2, Q2.p3,
 				tolerance,
 				result_t_p + total_count, result_t_q + total_count);
+		t_q_end = result_t_q + total_count + count;
 		for (double *t_q = result_t_q + total_count, *t_p = result_t_p + total_count;
-				t_q < t_q+ total_count + count; t_q++, t_p++) {
+				t_q < t_q_end; t_q++, t_p++) {
 			result_t_q[total_count] = Q2.getOriginalFactor(*t_q);
 			result_t_p[total_count] = *t_p;
 			if (about_equal(*t_q, 0.0, double(tolerance)))

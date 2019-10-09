@@ -24,6 +24,20 @@
 #endif
 
 
-#define MATH2D_POLYNOM_N_ROOT_MAX_ITERATIONS 10000
+#define MATH2D_POLYNOM_N_ROOT_MAX_ITERATIONS 1000000
+
+#ifndef MATH2D_POLYNOM_N_ROOT_USE_ARITHMETICS
+	/**
+	 * This flag determines, whether the root finding
+	 * function polynom_N_roots uses arithmetics for all
+	 * polynomials with degree <= 4.
+	 *
+	 * It can be turned off for debugging purposes.
+	 */
+#	define MATH2D_POLYNOM_N_ROOT_USE_ARITHMETICS   1
+#endif
+
+
+
 
 #endif /* MATH2D_CONFIG_H_ */

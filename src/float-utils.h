@@ -50,9 +50,9 @@ const uint32_t DOUBLE_MANTISSA0_MAX = (DOUBLE_MANTISSA0_MSB<<1)-1;
 /** low-word mantissa maximum value */
 const uint32_t DOUBLE_MANTISSA1_MAX = 0xFFFFFFFFu;
 
-/** combined double mantissa maximum value */
-const uint64_t DOUBLE_MANTISSA_FULL_MSB = uint64_t(DOUBLE_MANTISSA0_MSB)<<32;
 /** combined double mantissa most significant bit */
+const uint64_t DOUBLE_MANTISSA_FULL_MSB = uint64_t(DOUBLE_MANTISSA0_MSB)<<32;
+/** combined double mantissa maximum value */
 const uint64_t DOUBLE_MANTISSA_FULL_MAX = uint64_t(DOUBLE_MANTISSA0_MAX)<<32 | DOUBLE_MANTISSA1_MAX;
 
 const int32_t DOUBLE_MANTISSA_FULL_SIZE = DOUBLE_MANTISSA0_SIZE + DOUBLE_MANTISSA1_SIZE;
@@ -68,7 +68,10 @@ static inline int double_exponent_biased(double d) {
 	return result.ieee.exponent - IEEE754_DOUBLE_BIAS;
 }
 
-
+/**
+ * +1 for positive values
+ * -1 for negative values
+ */
 static inline float copysign_only(float f) {
 	ieee754_float result = {.f = 1};
 	ieee754_float& bits = *((ieee754_float*)&f);
@@ -76,7 +79,37 @@ static inline float copysign_only(float f) {
 	return result.f;
 }
 
+/**
+ * +1 for positive values
+ *  0 for 0 values
+ * -1 for negative values
+ */
+static inline float copysign_null(float f) {
+	if (f == 0.f) return 0.f;
+	ieee754_float result = {.f = 1};
+	ieee754_float& bits = *((ieee754_float*)&f);
+	result.ieee.negative = bits.ieee.negative;
+	return result.f;
+}
+
+/**
+ * +1 for positive values
+ * -1 for negative values
+ */
 static inline double copysign_only(double f) {
+	ieee754_double result = {.d = 1};
+	ieee754_double& bits = *((ieee754_double*)&f);
+	result.ieee.negative = bits.ieee.negative;
+	return result.d;
+}
+
+/**
+ * +1 for positive values
+ *  0 for null values
+ * -1 for negative values
+ */
+static inline double copysign_null(double f) {
+	if (f == 0.0) return 0.0;
 	ieee754_double result = {.d = 1};
 	ieee754_double& bits = *((ieee754_double*)&f);
 	result.ieee.negative = bits.ieee.negative;
@@ -157,7 +190,19 @@ static inline void ieee754_double_mantissa_add(ieee754_double& f, const uint64_t
 
 }
 
-
+/**
+ * Compute the smallest value e which can be added to d
+ * so that the following statement holds:
+ *   d + e != d
+ */
+static inline double double_smallest_increment(double d) {
+	ieee754_double result = {.d = d};
+	result.ieee.mantissa0 = 0;
+	result.ieee.mantissa1 = 0;
+	result.ieee.exponent -= DOUBLE_MANTISSA_FULL_SIZE;
+	result.ieee.negative = 0;
+	return result.d;
+}
 
 
 typedef double_mantissa_full_t double_mantissa_mask_t;
