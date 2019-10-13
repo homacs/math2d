@@ -164,6 +164,9 @@ struct co_domain_t {
 	T clip(T v) const {
 		return !lower(v) ? T(lower) : !upper(v) ? T(upper) : v;
 	}
+	T size() {
+		return T(upper)-T(lower);
+	}
 
 };
 

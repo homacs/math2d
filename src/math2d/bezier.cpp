@@ -261,10 +261,10 @@ bool bezier_extrema(vec2 const& p0, vec2 const& p1, vec2 const& p2, vec2 const& 
 
 	auto bounds = CO_DOMAIN_REAL_IN_0_1_EXCLUSIVE;
 
-	analysis = polynom3_extrema(a.x,b.x,c.x, false, t_min.x, t_max.x, bounds);
+	analysis = polynom3_extrema<double>(a.x,b.x,c.x, false, t_min.x, t_max.x, bounds);
 	found = (analysis != 0);
 
-	analysis = polynom3_extrema(a.y,b.y,c.y, false, t_min.y, t_max.y, bounds);
+	analysis = polynom3_extrema<double>(a.y,b.y,c.y, false, t_min.y, t_max.y, bounds);
 	found |= (analysis != 0);
 
 	return found;
@@ -385,7 +385,7 @@ int bezier_line_segment_intersections_t(
 	//    and check 0 <= s_i <= 1
 	int total = count;
 	for (int i = 0, j = 0; i < total; i++) {
-		double s_i = polynom3_value(A, B, C, D, t[i])/denominator;
+		double s_i = polynom3_value<double>(A, B, C, D, t[i])/denominator;
 		if (interval_s(s_i)) {
 			s[j] = s_i;
 			t[j] = t[i];

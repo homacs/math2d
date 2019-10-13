@@ -74,12 +74,15 @@ void run_all_tests() {
 
 
 int main(int argc, char** argv) {
-
-	// Test_polynom::test_polynom4_roots_2();
-    // Test_polynom::test_polynom4_roots_random();
+//	Test_polynom::test_polynom_N_roots();
+	Test_polynom::test_polynom4_roots();
+//	PERF_INIT();
+//    Test_polynom::test_polynom_N_roots_by_random_roots();
+//	PERF_REPORT(test_polynom4_roots_random);
+//	PERF_DONE();
 
 	// test_bezier_bezier_intersections();
 
-	run_all_tests();
+//	run_all_tests();
 	return 0;
 }

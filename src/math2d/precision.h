@@ -79,16 +79,10 @@ static inline bool about_equal(glm::tvec2<double, P> const & a, glm::tvec2<doubl
 	return glm::length(a-b) <= tolerance;
 }
 
-
-static inline bool about_equal(double a, double b, double tolerance) {
+template<typename REAL_T>
+static inline bool about_equal(REAL_T a, REAL_T b, REAL_T tolerance) {
 	assert(tolerance >= 0.0);
-	double dist = fabs(a-b);
-	return dist <= tolerance;
-}
-
-static inline bool about_equal(float a, float b, float tolerance) {
-	assert(tolerance >= 0.0);
-	float dist = fabs(a-b);
+	double dist = std::fabs(a-b);
 	return dist <= tolerance;
 }
 

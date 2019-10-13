@@ -10,6 +10,8 @@
 namespace math2d {
 
 int POLYNOM_N_ROOTS_iterations = 0;
+int POLYNOM_N_ROOT_iterations_avg = 0;
+int POLYNOM_N_ROOT_calls_num = 0;
 
 
 

@@ -10,7 +10,7 @@
 
 #include <ieee754.h>
 #include <stdint.h>
-#include <math.h>
+#include <cmath>
 #include <math2d-config.h>
 
 
@@ -371,35 +371,24 @@ static inline double double_mantissa_ceil(const double& a, const double_mantissa
  * @param p (precision) Smallest accepted positive value, not null.
  * @return
  */
-static inline float trunc_frac(float value, float precision) {
+template<typename REAL_T = double>
+static inline REAL_T trunc_frac(REAL_T value, REAL_T precision) {
 	value = value / precision;
-	modff(value, &value); // trunc()
+	std::modf(value, &value); // trunc()
 	value = value * precision;
 	return value;
 }
 
 
-static inline double trunc_frac(double value, double precision) {
-	value = value / precision;
-	modf(value, &value); // trunc()
-	value = value * precision;
-	return value;
-}
-
 
 /** round value towards multiples of precision */
-static inline float round_frac(float value, float precision) {
-	float neg = 1.0f - ((value < 0)*2.0f);
+template<typename REAL_T = double>
+static inline float round_frac(REAL_T value, REAL_T precision) {
+	REAL_T neg = REAL_T(1.0) - ((value < 0)*2.0f);
 	value = value + neg*precision/2.0;
 	return trunc_frac(value, precision);
 }
 
-/** round value towards multiples of precision */
-static inline double round_frac(double value, double precision) {
-	double neg = 1.0f - ((value < 0)*2.0f);
-	value = value + neg*precision/2.0;
-	return trunc_frac(value, precision);
-}
 
 
 
